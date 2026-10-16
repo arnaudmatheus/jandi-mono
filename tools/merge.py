@@ -29,6 +29,7 @@ STYLES = {
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
+VERSION = "0.2.0"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -270,13 +271,13 @@ for rec in list(name.names):
     if rec.nameID in (1, 2, 3, 4, 5, 6, 16, 17, 18, 19, 21, 22, 25):
         name.removeNames(nameID=rec.nameID)
 PSSTYLE = style.replace(' ', '')
-for nid, val in {1: FAMILY, 2: style, 3: f"0.1.0;{PS}-{PSSTYLE}", 4: f"{FAMILY} {style}", 6: f"{PS}-{PSSTYLE}", 18: f"{FAMILY} {style}", 19: "fogão · ñe'ẽ · yandï'pawa"}.items():
+for nid, val in {1: FAMILY, 2: style, 3: f"{VERSION};{PS}-{PSSTYLE}", 4: f"{FAMILY} {style}", 6: f"{PS}-{PSSTYLE}", 18: f"{FAMILY} {style}", 19: "fogão · ñe'ẽ · yandï'pawa"}.items():
     name.setName(val, nid, 3, 1, 0x409)
     if val.isascii():                     # Mac Roman can't hold ẽ / ï
         name.setName(val, nid, 1, 0, 0)
 old = name.getDebugName(0) or ""
 name.setName((old + " " if old else "") + "Jandí Mono lowercase and marks: Copyright (c) 2026 arnaudmatheus.", 0, 3, 1, 0x409)
-name.setName("Version 0.1.0; derived from Monaspace Radon 1.400", 5, 3, 1, 0x409)
+name.setName(f"Version {VERSION}; derived from Monaspace Radon 1.400", 5, 3, 1, 0x409)
 name.setName("Monaspace Radon's cursive rewritten with a fixed-angle Renaissance broad nib, for the Jandí theme.", 10, 3, 1, 0x409)
 cff.fontNames = [f"{PS}-{PSSTYLE}"]
 td.FullName = f"{FAMILY} {style}"; td.FamilyName = FAMILY
