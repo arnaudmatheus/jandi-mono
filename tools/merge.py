@@ -29,7 +29,7 @@ STYLES = {
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -87,13 +87,29 @@ for n, fn in caps.EXTRAS_LOWER.items():
     GLYPHS[n] = (fn, 'lower')
 for n, fn in caps.EXTRAS_UPPER.items():
     GLYPHS[n] = (fn, 'cap')
+
+# x-height +5% (roadmap B2: Legge & Bigelow's critical print size). Only the
+# band from baseline to x-height stretches; ascenders keep their top, so the
+# space above is compressed proportionally; descenders don't move.
+XH_OLD, XH_NEW = 1027, 1080
+K = XH_NEW / XH_OLD
+T_NEW = pen.T * K
+def vmap(y):
+    if y <= 0:
+        return y
+    if y <= pen.T:
+        return y * K
+    return T_NEW + (y - pen.T) * (pen.A - T_NEW) / (pen.A - pen.T)
+def taller(fn):
+    return lambda: [[(x, vmap(y)) for x, y in st] for st in fn()]
+GLYPHS = {g: ((taller(fn), kind) if kind == 'lower' else (fn, kind)) for g, (fn, kind) in GLYPHS.items()}
 GLYPHS = {g: v for g, v in GLYPHS.items() if g in td.CharStrings}
 LETTER_OF = {**{c: c for c in 'abcdefghijklmnopqrstuvwxyz'}, **{c: c for c in caps.CAPS}}
 ASCENDERS = set('bdfhkl')
 CAP_TOP = 1460
 
 def band_top(kind):
-    return pen.XH if kind == 'lower' else CAP_TOP
+    return XH_NEW if kind == 'lower' else CAP_TOP
 
 def strokes_for(gname):
     return GLYPHS[gname][0]()
@@ -126,9 +142,10 @@ def anchors(gname):
     """Top / bottom / horn / ogonek anchors in upright space, before slant + dx."""
     s, kind = strokes_for(gname), GLYPHS[gname][1]
     if kind == 'lower':
-        cx, right = pen.band_x(s)
-        top_y = (pen.A + 170) if gname in ASCENDERS else (pen.T + 190)
-        horn_y = pen.T - 40
+        xs = [x for st in s for x, y in st if pen.B - 1 <= y <= T_NEW + 1]
+        cx, right = (min(xs) + max(xs)) / 2, max(xs)
+        top_y = (pen.A + 170) if gname in ASCENDERS else (T_NEW + 190)
+        horn_y = T_NEW - 40
     else:
         xs = [x for st in s for x, y in st if caps.FB - 20 <= y <= caps.CT + 20]
         cx, right = (min(xs) + max(xs)) / 2, max(xs)
@@ -284,6 +301,7 @@ td.FullName = f"{FAMILY} {style}"; td.FamilyName = FAMILY
 if 'Italic' in style:
     font['post'].italicAngle = -float(STYLES[style]['slant'])
 font['OS/2'].fsType = 0
+font['OS/2'].sxHeight = XH_NEW
 font['OS/2'].xAvgCharWidth = CELL
 font.save(out)
 print(f"{out}: replaced {len(done)} glyphs ({len(placed)} base, {len(mark_anchor)} marks)")

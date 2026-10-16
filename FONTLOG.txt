@@ -20,6 +20,19 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+0.3.0 (2026-10-16)
+- Measurement harness (tools/measure.py): confusability of easily confused
+  characters, spacing evenness, roman/italic similarity, visual angle of the
+  x-height, sharpness. Numbers in docs/metrics.md (0.2.0 baseline kept).
+- x-height raised 5% (1027 → 1080 units): 0.205° → 0.216° at 12 pt on a
+  97 PPI screen at 60 cm, above the ≈0.2° critical print size of reading
+  research (Legge & Bigelow 2011). Ascenders keep their height.
+- Distinctiveness pass on the most-confused letters (Beier & Larson 2010):
+  mean similarity 0.908 → 0.894 at 12 px, no pair worse by > 0.01. New forms:
+  narrower notched a, wider o, footed b, long-exit h, short lower hook on f
+  vs a big round hook on j, wider i, a sweeping tail on l, a t with a
+  right-reaching bar, wider I bars, a longer flag on 1.
+
 0.2.0 (2026-10-16)
 - Cell narrowed from 1240 to 1160 units (0.62 → 0.58 em): with the narrower
   chancery letters, 1240 left too much space between them. Every glyph kept

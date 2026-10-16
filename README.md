@@ -19,8 +19,13 @@ between letters (no joins), which is exactly what a monospace grid needs.
 - **Subtle contrast** (≈1.6 : 1), so hairlines survive 9 pt on a 96 PPI screen.
 - **Chancery `f`** with a descender, and a **`g` whose looped descender closes
   in one sweep**, inspired by Michelangelo's signature.
-- **No confusables:** flagged and footed `1`, curved `l`, serifed `I`,
-  slashed `0` narrower than `O`.
+- **Measured legibility:** confusable letters are checked by a harness
+  (`tools/measure.py`, results in [docs/metrics.md](docs/metrics.md)): a
+  flagged and footed `1`, an `l` with a sweeping tail, a serifed `I`, a slashed
+  `0` narrower than `O`, a notched `a` against a round `o`, `f` and `j` with
+  hooks of different sizes.
+- **A taller x-height than Radon** (+5%), so 12 pt clears the ≈0.2° critical
+  print size of reading research on a typical desktop monitor.
 - **Writes Tupi and Guarani correctly.** Radon has no mark positioning, so
   `g` + U+0303 leaves the tilde floating beside the `g`. Jandí Mono adds GPOS
   mark attachment: `g̃ G̃ ỹ ĩ ũ ẽ` sit right, and so do Vietnamese stacks and
@@ -67,7 +72,8 @@ pip install -r requirements.txt
 diacritics. `tools/merge.py` writes them into the upstream Radon fonts in
 `sources/upstream/`; `tools/nerd.py` adds the icons from an installed
 MonaspiceRn Nerd Font (set `NF_DIR` if it isn't in `/usr/share/fonts/OTF`).
-`SPEC.md` records the design decisions.
+`SPEC.md` records the design decisions, `ROADMAP.md` what comes next, and
+`tools/measure.py` the numbers each change has to improve.
 
 ## Credits
 

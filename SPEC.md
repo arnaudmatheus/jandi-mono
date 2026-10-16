@@ -55,6 +55,14 @@ Variants `.left` / `.right` / `.both` exist for `f i j l t v` (shifted) and
 `m w` (widened past the cell). They are regenerated from the same skeletons,
 shifted or widened to Radon's measured extents, so healing keeps working.
 
+## Next: see ROADMAP.md
+
+Two study rounds (articles, then reading research) produced the 0.3 → 1.0
+roadmap in `ROADMAP.md`: measurement harness, upright formata Regular,
+x-height +5%, distinctiveness pass, corsiva Italic, spacing system and a Wide
+accessibility build, pen punctuation, curves + hinting, a Text weight, and a
+reading-speed self-test.
+
 ## Phases
 
 1. ~~Proof 01: 9 letters, two contrasts~~ — done.

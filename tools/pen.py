@@ -45,9 +45,11 @@ def ellipse(cx, cy, rx, ry, n=160, start=math.pi / 2):
 
 # ---------------------------------------------------------------- letters
 def strokes_a():
-    bowl = path(('M', (905, 880)), ('C', (840, 955), (720, T), (620, T)), ('C', (420, T), (320, 760), (320, 520)),
-                ('C', (320, 240), (430, B), (580, B)), ('C', (720, B), (840, 170), (905, 330)))
-    stem = path(('M', (905, T)), ('L', (905, 170)), ('C', (905, 90), (950, 55), (1030, 95)))
+    # B3: bojo mais estreito, entalhe onde encontra a haste e saída longa —
+    # a 12 px o a da 0.2.0 era quase o (similaridade 0.979).
+    bowl = path(('M', (880, 760)), ('C', (830, 920), (730, T), (640, T)), ('C', (470, T), (390, 760), (390, 520)),
+                ('C', (390, 240), (470, B), (600, B)), ('C', (720, B), (840, 170), (905, 330)))
+    stem = path(('M', (905, T)), ('L', (905, 170)), ('C', (905, 80), (960, 40), (1080, 100)))
     return [bowl, stem]
 
 def strokes_e():
@@ -55,11 +57,11 @@ def strokes_e():
                  ('C', (430, T), (320, 760), (320, 520)), ('C', (320, 240), (440, B), (620, B)), ('C', (760, B), (860, 130), (925, 230)))]
 
 def strokes_o():
-    return [ellipse(615, 515, 300, 457)]
+    return [ellipse(615, 515, 325, 457)]
 
 def strokes_n():
     entry = path(('M', (240, 885)), ('L', (330, T)), ('L', (330, 40)))
-    arch = path(('M', (330, 640)), ('C', (400, 900), (520, T), (640, T)), ('C', (800, T), (905, 880), (905, 700)),
+    arch = path(('M', (330, 760)), ('C', (390, 930), (520, T), (650, T)), ('C', (810, T), (905, 880), (905, 700)),
                 ('L', (905, 170)), ('C', (905, 90), (950, 55), (1030, 95)))
     return [entry, arch]
 
@@ -87,13 +89,15 @@ def strokes_g():
     return [bowl, stem]
 
 def strokes_f():
-    hook = path(('M', (980, 1360)), ('C', (930, 1450), (830, 1482), (740, 1482)), ('C', (620, 1482), (560, 1400), (560, 1250)),
-                ('L', (560, -150)), ('C', (560, -280), (470, -360), (360, -360)), ('C', (300, -360), (260, -330), (240, -290)))
-    bar = path(('M', (320, T - 10)), ('L', (830, T - 10)))
+    # B3: barra larga, gancho de cima maior e gancho de baixo CURTO — o j
+    # fica com o gancho grande; a 12 px os dois eram quase iguais (0.887).
+    hook = path(('M', (1010, 1330)), ('C', (960, 1450), (850, 1482), (750, 1482)), ('C', (620, 1482), (560, 1400), (560, 1250)),
+                ('L', (560, -170)), ('C', (560, -290), (510, -350), (430, -355)))
+    bar = path(('M', (280, T - 10)), ('L', (900, T - 10)))
     return [hook, bar]
 
 def strokes_dotlessi():
-    return [path(('M', (470, 885)), ('L', (560, T)), ('L', (560, 170)), ('C', (560, 90), (610, 55), (690, 95)))]
+    return [path(('M', (400, 865)), ('L', (560, T)), ('L', (560, 170)), ('C', (560, 80), (630, 40), (760, 100)))]
 
 def strokes_idot():
     return strokes_dotlessi() + [path(('M', (557, 1267)), ('L', (593, 1303)))]
@@ -112,7 +116,7 @@ BOWL_R = [('C', (400, 880), (510, T), (640, T)), ('C', (820, T), (910, 800), (91
 ARCH = [('C', (400, 900), (520, T), (640, T)), ('C', (800, T), (905, 880), (905, 700))]
 
 def strokes_b():
-    return [path(*ENTRY(330, A), ('L', (330, 110))), path(('M', (330, 620)), *BOWL_R)]
+    return [path(*ENTRY(330, A), ('L', (330, 70)), ('C', (330, 30), (290, 10), (230, 20))), path(('M', (330, 620)), *BOWL_R)]
 
 def strokes_c():
     return [path(('M', (900, 830)), ('C', (840, 940), (740, T), (630, T)), ('C', (430, T), (320, 760), (320, 520)),
@@ -122,11 +126,12 @@ def strokes_d():
     return [strokes_a()[0], path(*ENTRY(905, A), *EXIT(905))]
 
 def strokes_h():
-    return [path(*ENTRY(330, A), ('L', (330, 40))), path(('M', (330, 640)), *ARCH, *EXIT(905))]
+    return [path(*ENTRY(330, A), ('L', (330, 40))),
+            path(('M', (330, 640)), *ARCH, ('L', (905, 170)), ('C', (905, 80), (960, 40), (1080, 100)))]
 
 def strokes_dotlessj():
-    return [path(*ENTRY(560, T), ('L', (560, -150)), ('C', (560, -280), (470, D), (360, D)),
-                 ('C', (300, D), (260, -330), (240, -290)))]
+    return [path(('M', (430, 880)), ('L', (560, T)), ('L', (560, -150)), ('C', (560, -300), (440, D), (330, D)),
+                 ('C', (240, D), (190, -310), (185, -250)))]
 
 def strokes_j():
     return strokes_dotlessj() + [path(('M', (557, 1267)), ('L', (593, 1303)))]
@@ -138,7 +143,10 @@ def strokes_k():
     return [stem, loop, leg]
 
 def strokes_l():
-    return [path(*ENTRY(560, A), *EXIT(560))]
+    # B3: cauda longa que sobe para a direita — nada mais na fonte tem esse
+    # desenho, então l deixa de parecer I, 1 ou i a 12 px.
+    return [path(*ENTRY(560, A), ('L', (560, 260)), ('C', (560, 110), (630, 45), (730, 55)),
+                 ('C', (810, 65), (860, 120), (885, 190)))]
 
 def strokes_m():
     # Três hastes na mesma célula: o m é a única letra que não pode estreitar.
@@ -163,7 +171,10 @@ def strokes_s():
                  ('C', (860, 130), (740, B), (590, B)), ('C', (470, B), (370, 100), (310, 190)))]
 
 def strokes_t():
-    return [path(('M', (560, 1250)), *EXIT(560)), path(('M', (330, T - 10)), ('L', (820, T - 10)))]
+    # B3: haste curta, saída curta e barra puxada para a direita, como nas
+    # chancelarescas — três silhuetas distintas: f (barra longa simétrica),
+    # l (sem barra, cauda longa), t (barra à direita, cauda curta).
+    return [path(('M', (560, 1180)), *EXIT(560)), path(('M', (430, T - 10)), ('L', (880, T - 10)))]
 
 def strokes_v():
     # Vértice agudo na linha de base: com fundo redondo o v virava u a 12 px.
