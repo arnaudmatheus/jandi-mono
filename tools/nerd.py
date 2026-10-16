@@ -21,21 +21,25 @@ cmap = font.getBestCmap(); icmap = icons.getBestCmap(); igs = icons.getGlyphSet(
 order = font.getGlyphOrder()
 have = set(order)
 
+# Os ícones vêm de uma fonte de célula 1240; seguem a célula desta.
+from fontTools.pens.transformPen import TransformPen
+CELL = td.Private.defaultWidthX
+R = CELL / 1240
 added = {}
 for cp, gname in sorted(icmap.items()):
     if cp in cmap:
         continue
     name = gname if gname not in have else f"{gname}.nf"
     if name not in added and name not in have:
-        width = icons['hmtx'][gname][0]
-        p = T2CharStringPen(None if width == 1240 else width, igs)
-        igs[gname].draw(p)
+        width = round(icons['hmtx'][gname][0] * R)
+        p = T2CharStringPen(None if width == CELL else width, igs)
+        igs[gname].draw(TransformPen(p, (R, 0, 0, 1, 0, 0)))
         cs = p.getCharString(private=td.Private, globalSubrs=cff.GlobalSubrs)
         idx = td.CharStrings
         idx.charStringsIndex.append(cs)
         idx.charStrings[name] = len(idx.charStringsIndex) - 1
         order.append(name); have.add(name)
-        font['hmtx'][name] = (width, icons['hmtx'][gname][1])
+        font['hmtx'][name] = (width, round(icons['hmtx'][gname][1] * R))
         added[name] = []
     added[name].append(cp)
 

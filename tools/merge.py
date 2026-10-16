@@ -34,6 +34,9 @@ args = sys.argv[1:]
 style = 'Regular'
 if '--style' in args:
     i = args.index('--style'); style = args[i + 1]; del args[i:i + 2]
+CELL = 1160                           # decision 2026-10-16: 1240 left too much air between chancery letters
+if '--cell' in args:
+    i = args.index('--cell'); CELL = int(args[i + 1]); del args[i:i + 2]
 src, out = args[0], args[1]
 W, T = STYLES[style]['nib']
 pen.SLANT = math.radians(STYLES[style]['slant'])
@@ -42,6 +45,28 @@ font = TTFont(src)
 cmap = font.getBestCmap()
 cff = font['CFF '].cff
 td = cff.topDictIndex[0]
+
+# A célula. Radon tem 1240 (0,62 em), larga; com as letras chancelarescas mais
+# estreitas o espaço entre elas sobrava. Encolher a célula na própria fonte
+# aperta tudo de uma vez (terminal, barra, menus). O que continua sendo do
+# Radon (símbolos, box drawing, braille) é escalado em x junto, então linhas
+# de caixa seguem encostando de borda a borda.
+if CELL != 1240:                      # Radon upstream is 1240
+    from fontTools.pens.transformPen import TransformPen
+    srcgs = TTFont(src).getGlyphSet()
+    r = CELL / 1240
+    cs = td.CharStrings
+    for g in font.getGlyphOrder():
+        w = font['hmtx'][g][0]
+        nw = round(w * r)
+        p = T2CharStringPen(None if nw == CELL else nw, None)
+        srcgs[g].draw(TransformPen(p, (r, 0, 0, 1, 0, 0)))
+        new = p.getCharString(private=td.Private, globalSubrs=cff.GlobalSubrs)
+        cs.charStringsIndex[cs.charStrings[g]] = new
+        font['hmtx'][g] = (nw, round(font['hmtx'][g][1] * r))
+    td.Private.defaultWidthX = CELL
+    td.Private.nominalWidthX = 0
+pen.ADV = CELL
 gs = font.getGlyphSet()
 
 import caps
@@ -74,7 +99,7 @@ def strokes_for(gname):
 
 # ------------------------------------------------------------- write outlines
 def to_charstring(shape):
-    p = T2CharStringPen(None, None)            # width None == defaultWidthX (1240)
+    p = T2CharStringPen(None, None)            # width None == defaultWidthX (the cell)
     shape = shape.simplify(1.5)
     for g in (shape.geoms if isinstance(shape, MultiPolygon) else [shape]):
         g = orient(g, sign=1.0)                # CFF: outer contours counter-clockwise
@@ -258,5 +283,6 @@ td.FullName = f"{FAMILY} {style}"; td.FamilyName = FAMILY
 if 'Italic' in style:
     font['post'].italicAngle = -float(STYLES[style]['slant'])
 font['OS/2'].fsType = 0
+font['OS/2'].xAvgCharWidth = CELL
 font.save(out)
 print(f"{out}: replaced {len(done)} glyphs ({len(placed)} base, {len(mark_anchor)} marks)")

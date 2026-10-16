@@ -9,8 +9,8 @@ rewritten with a Renaissance pen.** Made for the
 ## What it is
 
 Radon is Monaspace's handwriting face: warm, slanted, drawn with an even
-marker-like stroke. Jandí Mono keeps Radon's grid, metrics, symbols, box
-drawing, braille and OpenType features, and redraws its letters the way a
+marker-like stroke. Jandí Mono keeps Radon's vertical metrics, symbols, box
+drawing and OpenType features, and redraws its letters the way a
 chancery scribe would: every letter is a centreline swept by **one rectangular
 nib held at one fixed angle (35°)**. Thick and thin are never drawn by hand;
 they fall out of the pen angle, the same for every letter. The hand lifts
@@ -27,6 +27,9 @@ between letters (no joins), which is exactly what a monospace grid needs.
   the Czech/Slovak apostrophe carons (`ď ľ ť Ľ`).
 - **Radon's texture healing still works:** its widened and shifted letter
   variants are regenerated from the same skeletons.
+- **A tighter cell than Radon:** 1160 units (0.58 em) instead of 1240, so the
+  narrower chancery letters don't float apart. Radon's symbols and box
+  drawing are scaled with it, so box lines still meet edge to edge.
 - Regular, Bold, Italic, Bold Italic. The Italic leans 13° against the
   Regular's 7°, so italic comments read apart from code.
 
@@ -35,7 +38,7 @@ between letters (no joins), which is exactly what a monospace grid needs.
 | Family | Use |
 |---|---|
 | `Jandi Mono` | Text only |
-| `Jandi Mono NF` | Plus 10,828 Nerd Fonts icons for bars, prompts and editors |
+| `Jandi Mono NF` | Plus 10,828 Nerd Fonts icons for bars, prompts and editors, and braille for btop-style graphs (upstream Radon has no braille) |
 
 ## Install
 

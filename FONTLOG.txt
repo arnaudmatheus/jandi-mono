@@ -6,8 +6,9 @@ Basic font information
 Jandí Mono is a monospaced font for terminals and desktop interfaces, made for
 the Jandí theme for Omarchy. It is a derivative of Monaspace Radon: Radon's
 cursive letters are redrawn with a simulated Renaissance broad-nib pen held at
-one fixed angle, while Radon's grid, metrics, symbols, box drawing, braille and
-OpenType features are kept.
+one fixed angle, while Radon's vertical metrics, symbols, box drawing and
+OpenType features are kept. Braille is only in the NF builds (upstream Radon
+has none).
 
 Two families are built from the same sources:
 - Jandi Mono      Regular, Bold, Italic, Bold Italic
@@ -19,6 +20,13 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+0.2.0 (2026-10-16)
+- Cell narrowed from 1240 to 1160 units (0.62 → 0.58 em): with the narrower
+  chancery letters, 1240 left too much space between them. Every glyph kept
+  from Radon (symbols, box drawing, blocks, powerline) and every NF icon is
+  scaled horizontally to the new cell, so box lines still join.
+- Docs: braille comes only with the NF builds; upstream Radon has none.
+
 0.1.0 (2026-10-16)
 - Redrawn from centreline skeletons swept by a rectangular nib at 35°, slant
   7° (Regular/Bold) and 13° (Italic/Bold Italic): a–z, A–Z, 0–9, dotless i/j,

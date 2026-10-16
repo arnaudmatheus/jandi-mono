@@ -22,13 +22,14 @@ Jandí Omarchy theme. A terminal font first: it must hold the grid.
 | `f` | **Chancery f with descender** (after Michelangelo) |
 | `g` | **Signature-inspired loop, default** |
 | Width | **Keep the narrower chancery proportions** |
+| Cell (2026-10-16) | **1160** (was Radon's 1240): spacing read too airy; Radon glyphs and NF icons scaled to it |
 
 ## Pen model (tools/pen.py)
 
 - Every letter is a centreline skeleton drawn upright, slanted **7°**, then a
   rectangular nib at **35°** is swept along it. Thick/thin is never drawn by
   hand.
-- Radon's grid is kept: 2000 UPM, 1240 advance, x-height 1027, cap 1460,
+- Radon's vertical grid is kept: 2000 UPM, advance 1160 (Radon 1240), x-height 1027, cap 1460,
   ascender ≈1550, descender −426, line 1990 / −500.
 - Stem weight matches Radon (n stem ≈175 units vs Radon 156–176).
 
@@ -36,7 +37,7 @@ Jandí Omarchy theme. A terminal font first: it must hold the grid.
 
 - Strict monospace; listed by `omarchy font list`; works with
   `omarchy font set`.
-- Box drawing, braille (btop), powerline (tmux) inherited from Radon untouched.
+- Box drawing, blocks and powerline (tmux) inherited from Radon (scaled to the cell). Braille (btop) is NOT in upstream Radon: only the NF builds have it.
 - Nerd Font build for the bar and starship icons.
 - Legible at 12 px (9 pt, LG ≈97 PPI), 15 px (bar), 20 px (laptop ≈157 PPI):
   distinct `1 l I`, `0 O`.
