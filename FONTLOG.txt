@@ -1,0 +1,52 @@
+FONTLOG for Jandí Mono
+======================
+
+Basic font information
+----------------------
+Jandí Mono is a monospaced font for terminals and desktop interfaces, made for
+the Jandí theme for Omarchy. It is a derivative of Monaspace Radon: Radon's
+cursive letters are redrawn with a simulated Renaissance broad-nib pen held at
+one fixed angle, while Radon's grid, metrics, symbols, box drawing, braille and
+OpenType features are kept.
+
+Two families are built from the same sources:
+- Jandi Mono      Regular, Bold, Italic, Bold Italic
+- Jandi Mono NF   the same, plus Nerd Fonts icons
+
+Released under the SIL Open Font License 1.1 (see OFL.txt). Following the
+OFL, it does not use the Reserved Font Names of the original ("Monaspace",
+"Argon", "Neon", "Xenon", "Radon", "Krypton").
+
+ChangeLog
+---------
+0.1.0 (2026-10-16)
+- Redrawn from centreline skeletons swept by a rectangular nib at 35°, slant
+  7° (Regular/Bold) and 13° (Italic/Bold Italic): a–z, A–Z, 0–9, dotless i/j,
+  ß æ ø œ ł đ ħ ĸ ŋ þ ð Æ Ø Œ Ł Đ Ð Ħ Ŋ Þ, every precomposed accented Latin
+  letter in Radon's character set, 17 combining marks and their .case and
+  Vietnamese stacked forms.
+- Added GPOS mark attachment and corrected the GDEF class of the combining
+  marks (Radon has no GPOS and files its marks as components), so sequences
+  such as g + U+0303 (Guarani g̃) and G + U+0303 position correctly.
+- Regenerated Radon's texture-healing variants (.left/.right/.both) from the
+  same skeletons, so its contextual alternates keep working.
+- Distinct confusables: flagged and footed 1, curved l, serifed I, slashed 0.
+- Czech/Slovak carons on ď ľ ť Ľ drawn as apostrophes.
+- NF builds: 10,828 Nerd Fonts icon glyphs copied from MonaspiceRn Nerd Font
+  (Nerd Fonts' patch of Radon, already scaled to this cell).
+
+Still from Radon in 0.1.0: punctuation and symbols, zero.alt01–04, i.alt and
+l.alt, A.italic/B.italic, numerator/denominator/superior/inferior figures.
+
+Acknowledgements
+----------------
+- Monaspace Radon: Riley Cran and the Lettermatic team, for GitHub Next.
+  https://github.com/githubnext/monaspace (OFL 1.1)
+- Nerd Fonts: Ryan L McIntyre and contributors. https://github.com/ryanoasis/nerd-fonts
+  The icon glyph sets keep their own licences; see the Nerd Fonts repository.
+- Jandí palette and naming: jandi-colors by Francisco Tarcizo Bomfim Júnior.
+  https://github.com/franciscotbjr/jandi-colors (MIT)
+- Michelangelus (Microsoft, Studiogusto, Fabbrica di San Pietro): inspiration
+  only, from the design principles its makers published. No outlines,
+  measurements or data from that font are used; its licence forbids it.
+- Jandí Mono letterforms and tools: arnaudmatheus.

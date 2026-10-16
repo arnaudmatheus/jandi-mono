@@ -1,0 +1,5 @@
+build/
+proofs/
+__pycache__/
+*.pyc
+fccache*/
