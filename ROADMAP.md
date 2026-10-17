@@ -71,7 +71,7 @@ goes where reading doesn't depend on it.
 - **B3. Distinctiveness.** Mean confusability went from 0.908 to 0.894 at
   12 px. `l/I` dropped from 0.969 to 0.903 and `i/l` from 0.936 to 0.865.
 
-### 0.4.0: Barroco na letra ✅ (built and measured, not yet released)
+### 0.4.0: Barroco na letra ✅
 
 **Regular after plate nº 9**
 - Larger hooked ascenders on `b d h k`, each closed by a ball. `l` keeps its
@@ -111,29 +111,56 @@ In the Italic, `i/l` went from 0.916 to 0.806 (12 px) and `l/t` from 0.837 to 0.
 - **The corsiva's long exit on `t`**, which matched the `l` tail.
 - **The `ASC` hook on the Regular `l`.**
 
+### 0.5.0: spacing, the regular plan under the carving ✅ (built and measured, not yet released)
+
+**D1. Optical centring, on `r` and `k` only.** They now centre on their ink's
+centre of mass instead of their bounding box. Each letter was tested alone:
+- `r` alone took spacing CV from 0.283 to 0.265.
+- Applied to every letter, it made `i/l`, `l/I` and `t/f` worse: narrow
+  letters lined up alike in the cell.
+- `c e s b h` each traded one pair for another.
+
+**D2. Texture healing re-derived.** Radon's healing makes narrow letters step
+aside and wide letters grow into the room. Jandí's `m` and `w` already fill the
+cell, so growing them made the healed pairs the tightest in the font: `mt` and
+`wt` at 7.5 px against a 13.8 px mean, at 40 px. I searched a grid of
+strengths, scoring both bigrams and three-letter contexts (the `i–n` in `min`).
+The winner: wide lowercase doesn't grow, and narrow letters keep Radon's step.
+- CV over everything: 0.266 → 0.247 (Regular), 0.290 → 0.264 (Italic).
+- Tightest healed pair: 7.5 → 10.0 px.
+- Healing can't touch narrow beside narrow (`li ti fi`, the loosest) or wide
+  beside wide (`mm ww`, the tightest). Only redrawing can: noted for F1.
+
+**D3. Jandi Mono Wide, cell 1320** (and Wide NF).
+- Same letters. Only glyphs whose ink touches both cell edges stretch (box
+  drawing, blocks), so lines still join.
+- Brackets and punctuation keep the default width, centred. Stretched, `[`
+  and `{` grew alike (`[/{` +0.018 at 12 px).
+
+**D4. Mark on mark.**
+- A `mkmk` feature, plus mark anchors on every precomposed accented letter.
+  HarfBuzz recomposes `u + ¨` into `ü` before positioning, so `ǘ`'s acute
+  needs an anchor on `ü`.
+- The stack height is measured on the ink: the downward acute hangs 131 units
+  below its own anchor, so a fixed step left it on the dieresis.
+- Known limit: Pinyin capitals (`Ǘ`) reach 2158 units, above the 1890 ascent,
+  so a terminal may clip the top accent.
+
+| Measure | 0.4.0 | 0.5.0 | 0.5.0 Wide |
+|---|---|---|---|
+| Spacing CV, Regular (Radon 0.267) | 0.283 | **0.253** | **0.208** |
+| Spacing CV, Italic | 0.302 | **0.271** | **0.222** |
+| Regular confusability, 12 / 15 / 20 px | 0.892 / 0.872 / 0.848 | 0.892 / 0.872 / 0.845 | 0.895 / 0.874 / 0.846 |
+| Italic confusability, 12 / 15 / 20 px | 0.884 / 0.859 / 0.829 | 0.884 / 0.859 / 0.827 | 0.884 / 0.858 / 0.827 |
+| Pairs more than 0.01 worse | n/a | **none** | `v/y` +0.011 at 12 px |
+
+Wide's one exception is not a shape change. The outlines are the default's;
+the 1320 cell puts each letter at a different pixel phase at 12 px. Nudging
+the letters off-centre to match would show at large sizes, so it stays.
+
 ---
 
 ## Next
-
-### 0.5.0: spacing (the regular plan under the carving)
-
-**D1. Optical centring.** Centre each letter on its visual mass, not only its
-bounding box. The Baroque terminals moved mass sideways: the balls on `c r f j
-y` and the hooks on `b d h k`. Targets: `r f j t c L F P 7 1`.
-
-**D2. Texture healing from Jandí's own widths.** Today's shifts are copied from
-Radon's shapes. Recompute giver and taker classes from the new ink widths,
-then the shifts that equalise the gaps (Commit Mono style).
-
-**D3. Jandi Mono Wide, cell 1320.** Extra-large spacing made dyslexic children
-read 20% faster with half the errors (Zorzi et al. 2012). The default stays
-1160, since added letter spacing slows typical readers (Slattery & Rayner 2013).
-
-**D4. Mark-to-mark stacking (`mkmk`).** `ǘ ǚ` are built from parts and the
-second mark doesn't stack.
-
-*Check:* spacing CV at or below 0.283 (0.3.0), and lower in Wide. Wide builds
-and installs. `ǘ` stacks.
 
 ### 0.6.0: pen punctuation and ligatures
 
@@ -160,13 +187,19 @@ restores plain characters with texture healing intact.
 segments per letter today, against Radon's 13–20). The balls and loops are
 where facets show first, at the lock-screen clock and when zooming.
 
+**F3. The pairs healing can't reach.** Narrow beside narrow (`li ti fi`) is
+the loosest and wide beside wide (`mm mw ww`) the tightest; Radon's healing
+doesn't act on either (D2). Redraw while the outlines are open: the lead-ins
+of `i l t` and the stems of `m w`. Measured with the three-letter contexts
+from D2.
+
 **F2. Hinting.** Run `otfautohint` (afdko) in `build.sh` so hintslight can
 snap the x-height and baseline.
 
 **G. Jandi Mono Text (≈450, nib ×1.08).** For the Jandí Light theme and the LG
 at 97 PPI, where thin strokes fade. The corsiva's hairlines matter most here.
 
-*Check:* sharpness at 12 px up, outline points down ≥ 5×. In Text, stems are
+*Check:* sharpness at 12 px up, outline points down ≥ 5×, spacing CV down. In Text, stems are
 8% heavier and hairlines ≥ 0.6 px at 12 px.
 
 ### 0.8.0: ornament (opt-in; the carving and the ceiling)
@@ -215,7 +248,7 @@ on, glyphs render in Ghostty, Quickshell and Chromium, and nothing clips.
 |---|---|---|
 | 0.3.0 ✅ | A, B2, B3 | Measure first, then the skeleton |
 | 0.4.0 ✅ | Barroco na letra (Regular nº 9, corsiva nº 7, feet, balls) | The base inspiration goes into the letters before anything is built on them |
-| 0.5.0 | D1–D4 | Spacing re-derived from the Baroque shapes |
+| 0.5.0 ✅ | D1–D4 | Spacing re-derived from the Baroque shapes |
 | 0.6.0 | E1, E2 | Punctuation and ligatures need the final drop size and spacing |
 | 0.7.0 | F1, F2, G | Curves and hints close the outline pipeline. Text reuses it |
 | 0.8.0 | I1–I4 | Ornament drawn once, in final curves, all opt-in |

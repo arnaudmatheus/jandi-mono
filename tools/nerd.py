@@ -63,16 +63,18 @@ for t in font['cmap'].tables:
         t.cmap = {cp: g for cp, g in full.items() if cp <= 0xFFFF}
 
 name = font['name']
+# Família lida da própria fonte: "Jandi Mono" vira "Jandi Mono NF",
+# "Jandi Mono Wide" vira "Jandi Mono Wide NF".
+FAM = name.getDebugName(1)
+PSFAM = cff.fontNames[0].split('-')[0]
 for rec in list(name.names):
     if rec.nameID in (1, 3, 4, 6, 18):
         s = str(rec)
-        if rec.nameID == 6:
-            name.setName(s.replace('JandiMono-', 'JandiMonoNF-'), 6, rec.platformID, rec.platEncID, rec.langID)
-        elif rec.nameID == 3:
-            name.setName(s.replace('JandiMono-', 'JandiMonoNF-'), 3, rec.platformID, rec.platEncID, rec.langID)
+        if rec.nameID in (3, 6):
+            name.setName(s.replace(PSFAM + '-', PSFAM + 'NF-'), rec.nameID, rec.platformID, rec.platEncID, rec.langID)
         else:
-            name.setName(s.replace('Jandi Mono', 'Jandi Mono NF'), rec.nameID, rec.platformID, rec.platEncID, rec.langID)
-cff.fontNames = [cff.fontNames[0].replace('JandiMono-', 'JandiMonoNF-')]
-td.FullName = td.FullName.replace('Jandi Mono', 'Jandi Mono NF'); td.FamilyName = 'Jandi Mono NF'
+            name.setName(s.replace(FAM, FAM + ' NF'), rec.nameID, rec.platformID, rec.platEncID, rec.langID)
+cff.fontNames = [cff.fontNames[0].replace(PSFAM + '-', PSFAM + 'NF-')]
+td.FullName = td.FullName.replace(FAM, FAM + ' NF'); td.FamilyName = FAM + ' NF'
 font.save(out)
 print(f"{out}: +{len(added)} icon glyphs, {sum(len(v) for v in added.values())} codepoints")

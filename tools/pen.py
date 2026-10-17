@@ -290,6 +290,8 @@ def polygons(shape):
     geoms = shape.geoms if isinstance(shape, MultiPolygon) else [shape]
     return [orient(g, sign=-1.0) for g in geoms]   # TrueType: outer contours clockwise
 
+OPTICAL = 0    # 0 = box centre, 1 = ink centroid; merge.py sets it per letter
+
 def place(upright_strokes, w, t, dx=None, band_top=XH):
     """Slant, sweep and centre a set of upright strokes. Returns (shape, dx).
     Pass dx to reuse a base letter's centring for its accented forms.
@@ -299,7 +301,8 @@ def place(upright_strokes, w, t, dx=None, band_top=XH):
     if dx is None:
         band = shape.intersection(Polygon([(-2000, 0), (4000, 0), (4000, band_top), (-2000, band_top)]))
         minx, _, maxx, _ = band.bounds
-        dx = ADV / 2 - (minx + maxx) / 2
+        centre = (1 - OPTICAL) * (minx + maxx) / 2 + OPTICAL * band.centroid.x
+        dx = ADV / 2 - centre
     return affinity.translate(shape, dx, 0), dx
 
 def band_x(upright_strokes):

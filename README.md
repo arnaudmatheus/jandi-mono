@@ -50,6 +50,8 @@ between letters (no joins), which is exactly what a monospace grid needs.
 |---|---|
 | `Jandi Mono` | Text only |
 | `Jandi Mono NF` | Plus 10,828 Nerd Fonts icons for bars, prompts and editors, and braille for btop-style graphs (upstream Radon has no braille) |
+| `Jandi Mono Wide` | The same letters in a wider cell (1320 instead of 1160), for readers who need extra space between letters |
+| `Jandi Mono Wide NF` | Wide, plus the Nerd Fonts icons |
 
 ## Install
 

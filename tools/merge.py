@@ -8,7 +8,7 @@ figures, capitals, features) is Radon's, untouched. Replaced: a–z, dotless
 i/j, the texture-healing variants, every precomposed accented lowercase, and
 the combining marks, which also gain real mark positioning (GPOS) and the
 GDEF "mark" class Radon lacks."""
-import math, re, sys, unicodedata as ud
+import math, os, re, sys, unicodedata as ud
 from fontTools.ttLib import TTFont
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.boundsPen import BoundsPen
@@ -34,7 +34,7 @@ STYLES = {
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -43,6 +43,13 @@ if '--style' in args:
 CELL = 1160                           # decision 2026-10-16: 1240 left too much air between chancery letters
 if '--cell' in args:
     i = args.index('--cell'); CELL = int(args[i + 1]); del args[i:i + 2]
+# Jandi Mono Wide (roadmap D3): the same letters in a 1320 cell, its own
+# family so it installs beside the default. Extra-large letter spacing made
+# dyslexic children read faster with fewer errors (Zorzi et al. 2012); the
+# default stays 1160 because extra spacing slows typical readers
+# (Slattery & Rayner 2013).
+if '--wide' in args:
+    args.remove('--wide'); CELL = 1320; FAMILY, PS = "Jandi Mono Wide", "JandiMonoWide"
 src, out = args[0], args[1]
 W, T = STYLES[style]['nib']
 pen.SLANT = math.radians(STYLES[style]['slant'])
@@ -63,15 +70,24 @@ if CELL != 1240:                      # Radon upstream is 1240
     from fontTools.pens.transformPen import TransformPen
     srcgs = TTFont(src).getGlyphSet()
     r = CELL / 1240
+    # Wide: o desenho é o mesmo, só a célula cresce. O que encosta nas duas
+    # bordas (box drawing, blocos) estica para continuar emendando; o resto
+    # (colchetes, chaves, pontuação) fica com a largura do Jandí Mono e só é
+    # centrado. Esticados, [ e { ficavam mais parecidos ([/{ +0.018 a 12 px).
+    r_sym = min(r, 1160 / 1240)
     cs = td.CharStrings
     for g in font.getGlyphOrder():
         w = font['hmtx'][g][0]
         nw = round(w * r)
         p = T2CharStringPen(None if nw == CELL else nw, None)
-        srcgs[g].draw(TransformPen(p, (r, 0, 0, 1, 0, 0)))
+        bp = BoundsPen(srcgs); srcgs[g].draw(bp)
+        joins = bp.bounds is not None and bp.bounds[0] <= 5 and bp.bounds[2] >= w - 5
+        sx, ox = (r, 0) if (joins or r_sym == r) else (r_sym, (nw - w * r_sym) / 2)
+        srcgs[g].draw(TransformPen(p, (sx, 0, 0, 1, ox, 0)))
         new = p.getCharString(private=td.Private, globalSubrs=cff.GlobalSubrs)
         cs.charStringsIndex[cs.charStrings[g]] = new
-        font['hmtx'][g] = (nw, round(font['hmtx'][g][1] * r))
+        lsb = round(bp.bounds[0] * sx + ox) if bp.bounds else 0
+        font['hmtx'][g] = (nw, lsb)
     td.Private.defaultWidthX = CELL
     td.Private.nominalWidthX = 0
 pen.ADV = CELL
@@ -135,6 +151,7 @@ def to_charstring(shape):
             p.moveTo(pts[0]); [p.lineTo(q) for q in pts[1:]]; p.closePath()
     return p.getCharString(private=td.Private, globalSubrs=cff.GlobalSubrs)
 
+INK = {}
 def put(name, shape):
     cs = td.CharStrings
     new = to_charstring(shape)
@@ -143,6 +160,7 @@ def put(name, shape):
     else:
         cs.charStrings[name] = new
     font['hmtx'][name] = (pen.ADV, int(shape.bounds[0]))
+    INK[name] = shape.bounds
 
 def radon_bounds(name):
     bp = BoundsPen(gs); gs[name].draw(bp); return bp.bounds
@@ -173,9 +191,18 @@ def shifted(strokes, ox, oy):
 done = []
 placed = {}
 # 1. base glyphs
+# Optical centring (roadmap D1): r and k sit on their ink's centre of mass,
+# not on their bounding box (their arm and leg reach right, so the box put
+# the stem too far left and left a hole before the next letter). Measured one
+# letter at a time: r alone took spacing variation 0.283 -> 0.265; applied to
+# every letter it made i/l, l/I, t/f worse (narrow letters lined up alike in
+# the cell), and c e s b h each traded one pair for another.
+OPTICAL = {'r': 1.0, 'k': 1.0}
 for gname, (fn, kind) in GLYPHS.items():
+    pen.OPTICAL = OPTICAL.get(gname, 0)
     shape, dx = pen.place(fn(), W, T, band_top=band_top(kind))
     put(gname, shape); placed[gname] = dx; done.append(gname)
+    pen.OPTICAL = 0
     if gname == 'i' and 'i.loclTRK' in td.CharStrings:
         put('i.loclTRK', shape); done.append('i.loclTRK')
 
@@ -189,6 +216,15 @@ for g in font.getGlyphOrder():
     vx0, _, vx1, _ = radon_bounds(g)
     r = (vx1 - vx0) / (bx1 - bx0)
     shift = (vx0 + vx1) / 2 - (bx0 + bx1) / 2
+    # Texture healing re-derived (roadmap D2): Radon's narrow letters step
+    # aside and its wide ones grow into the room. Jandí's m and w already fill
+    # the cell, so growing them made the healed pairs the tightest in the font
+    # (mt, wt 7.5 px against a 13.8 mean at 40 px). Measured over a grid of
+    # strengths, wide lowercase that doesn't grow is the most even (CV over
+    # bigrams and three-letter contexts 0.266 -> 0.247 Regular, 0.290 ->
+    # 0.264 Italic); narrow letters keep Radon's step.
+    if r > 1 and base.islower():
+        r, shift = 1.0, 0.0
     dx = placed[base]
     c = pen.ADV / 2
     # Skeleton slanted and centred; widen/shift it to Radon's variant, then
@@ -217,6 +253,7 @@ def compose(gname, marks_cps):
     shape, _ = pen.place(s + extra, W, T, dx=dx)
     return shape
 
+composite_base = {}
 for cp, gname in sorted(cmap.items()):
     d = ud.normalize('NFD', chr(cp))
     if len(d) < 2 or d[0] not in LETTER_OF or gname in GLYPHS:
@@ -227,6 +264,11 @@ for cp, gname in sorted(cmap.items()):
     if base in 'ij' and any(MARKS[ord(m)][0] == 'above' for m in d[1:]):
         base = 'dotlessi' if base == 'i' else 'uni0237'
     put(gname, compose(base, [ord(m) for m in d[1:]])); done.append(gname)
+    # O acento composto também é base: HarfBuzz recompõe u + ¨ em ü antes de
+    # posicionar, e o agudo de ǘ precisa de uma âncora acima do trema.
+    n_above = sum(MARKS[ord(m)][0] == 'above' for m in d[1:])
+    if n_above:
+        composite_base[gname] = base
 
 # 4. combining marks: drawn for an x-height letter at the cell centre
 mark_anchor = {}
@@ -273,6 +315,7 @@ for gname, (kind, (x, y)) in mark_anchor.items():
     classes.setdefault(cls, []).append(gname)
     lines.append(f"markClass [{gname}] <anchor {round(x)} {round(y)}> @{cls};")
 bases = []
+gdef_bases = []
 for gname, dx in placed.items():
     if gname not in LETTER_OF and gname not in ('dotlessi', 'uni0237'):
         continue
@@ -283,13 +326,33 @@ for gname, dx in placed.items():
             x, y = final(a[key], dx)
             parts.append(f"<anchor {round(x)} {round(y)}> mark @{cls}")
     bases.append(f"  pos base {gname} {' '.join(parts)};")
-fea = "\n".join(lines) + "\nfeature mark {\n" + "\n".join(bases) + "\n} mark;\n"
+# Stacking (ǘ ǚ, and any second mark): the next mark's lowest ink sits STACK_GAP
+# above the ink already there. Measured on the ink, because the marks hang
+# differently from their anchors: the downward acute reaches 131 units below
+# its own, the dieresis barely below. A fixed step left the acute on the dots.
+STACK_GAP = 90
+DEPTH = max(y - INK[g][1] for g, (kind, (x, y)) in mark_anchor.items() if kind == 'above')
+def stack_y(ink_top):
+    return ink_top + STACK_GAP + DEPTH
+for gname, base in composite_base.items():
+    a = anchors(base); a['above'] = (a['above'][0], stack_y(INK[gname][3]))
+    parts = [f"<anchor {round(final(a[k], placed[base])[0])} {round(final(a[k], placed[base])[1])}> mark @{cls}"
+             for k, cls in (('above', 'TOP'), ('below', 'BOTTOM'), ('horn', 'HORN'), ('ogonek', 'OGONEK')) if cls in classes]
+    bases.append(f"  pos base {gname} {' '.join(parts)};")
+    gdef_bases.append(gname)
+# Mark on mark (roadmap D4): every mark above carries a second anchor over its
+# own ink (stack_y), so a second mark sits on the first (ǘ ǚ, Pinyin;
+# Vietnamese outside the precomposed stacks) instead of on top of it.
+mk = [f"  pos mark {g} <anchor {round(x + (stack_y(INK[g][3]) - y) * TAN)} {round(stack_y(INK[g][3]))}> mark @TOP;"
+      for g, (kind, (x, y)) in mark_anchor.items() if kind == 'above']
+fea = ("\n".join(lines) + "\nfeature mark {\n" + "\n".join(bases) + "\n} mark;\n"
+       + "feature mkmk {\n" + "\n".join(mk) + "\n} mkmk;\n")
 addOpenTypeFeaturesFromString(font, fea, tables=['GPOS'])
 
 gdef = font['GDEF'].table.GlyphClassDef.classDefs
 for gname in mark_anchor:
     gdef[gname] = 3                      # Radon had these as "component" (4)
-for gname in placed:
+for gname in list(placed) + gdef_bases:
     gdef.setdefault(gname, 1)
 
 # 6. names: OFL Reserved Font Names may not survive in a derivative

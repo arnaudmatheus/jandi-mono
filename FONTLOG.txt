@@ -10,9 +10,11 @@ one fixed angle, while Radon's vertical metrics, symbols, box drawing and
 OpenType features are kept. Braille is only in the NF builds (upstream Radon
 has none).
 
-Two families are built from the same sources:
-- Jandi Mono      Regular, Bold, Italic, Bold Italic
-- Jandi Mono NF   the same, plus Nerd Fonts icons
+Four families are built from the same sources:
+- Jandi Mono         Regular, Bold, Italic, Bold Italic (cell 1160)
+- Jandi Mono NF      the same, plus Nerd Fonts icons
+- Jandi Mono Wide    the same letters in a 1320 cell, for extra-wide spacing
+- Jandi Mono Wide NF the same, plus Nerd Fonts icons
 
 Released under the SIL Open Font License 1.1 (see OFL.txt). Following the
 OFL, it does not use the Reserved Font Names of the original ("Monaspace",
@@ -20,6 +22,24 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+0.5.0 (2026-10-17): spacing
+- Jandi Mono Wide and Wide NF: the same letters in a 1320 cell (extra-large
+  letter spacing helped dyslexic readers in Zorzi et al. 2012). Only glyphs
+  that touch both cell edges (box drawing, blocks) stretch; brackets and
+  punctuation keep their width and are centred.
+- Optical centring for r and k (centre of mass, not bounding box).
+- Texture healing re-derived from Jandí's own widths: m and w no longer grow
+  beside narrow letters; narrow letters keep Radon's step aside.
+- Spacing variation (CV of bigram ink gaps) 0.283 -> 0.253 Regular,
+  0.302 -> 0.271 Italic, 0.208 in Wide; Radon is 0.267.
+- Capital T and Z widened to nearly the full cell, as in Radon. Their short
+  bars left a hole between neighbours (TT read as "T T", most visible in
+  the launcher): the gap at bar height went from 13.2 to 10.5 px at 40 px.
+- Mark-to-mark positioning (mkmk) and mark anchors on precomposed accented
+  letters: stacked accents such as ǘ ǚ now sit one above the other.
+- No confusable pair worse than 0.4.0 by more than 0.01 (docs/metrics.md),
+  except v/y +0.011 at 12 px in Wide, a pixel-phase effect of the wider cell.
+
 0.4.0 (2026-10-17): Barroco na letra
 - The base inspiration is now the Luso-Brazilian Baroque and the rococó
   mineiro (see ROADMAP.md). The letters follow Manuel de Andrade de
