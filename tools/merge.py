@@ -25,11 +25,16 @@ from marks import MARKS, CARON_APOSTROPHE
 STYLES = {
     'Regular':     dict(nib=(138, 106), slant=7),
     'Bold':        dict(nib=(196, 150), slant=7),    # Radon Bold stems ≈250 vs 172: ×1.42
-    'Italic':      dict(nib=(138, 106), slant=13),   # Regular already leans 7°: Italic must read apart
+    # The Italic is the corsiva after Figueiredo (tools/corsiva.py): his shapes
+    # (loops, rasgos, entries) with the same broad nib as the Regular. His
+    # pressure quill was tried and measured: even lightened to (165, 120) it
+    # filled the counters, and eight pairs got worse than 0.3.0 (c/o +0.044,
+    # n/u +0.036). Comments differ from code by shape; the stroke stays legible.
+    'Italic':      dict(nib=(138, 106), slant=13),
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -41,6 +46,8 @@ if '--cell' in args:
 src, out = args[0], args[1]
 W, T = STYLES[style]['nib']
 pen.SLANT = math.radians(STYLES[style]['slant'])
+pen.PEN = math.radians(STYLES[style].get('pen', 35))
+pen.NIB = STYLES[style].get('model', 'broad')
 TAN = math.tan(pen.SLANT)
 font = TTFont(src)
 cmap = font.getBestCmap()
@@ -71,6 +78,9 @@ pen.ADV = CELL
 gs = font.getGlyphSet()
 
 import caps
+import corsiva
+if 'Italic' in style:
+    pen.LETTERS.update(corsiva.CORSIVA)
 
 # Every redrawn glyph: Radon name -> (upright strokes, kind).
 # kind decides the centring band and where the marks sit.

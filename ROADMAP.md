@@ -1,190 +1,211 @@
-# Jandí Mono — roadmap 0.3 → 1.0
+# Jandí Mono — roadmap 0.4 → 1.0: Barroco e Rococó
 
-Built from two study rounds (2026-10-16): designers' articles on code fonts
-(round 1) and peer-reviewed reading research (round 2). Goal: a font that is
-as good for **studying** (long reading, notes) as for code, without losing the
-pen. Every phase ends with a **measured** check against the 0.2.0 baseline; a
-change that doesn't move its number doesn't ship.
+**The base inspiration is the Luso-Brazilian Baroque and the *rococó
+mineiro*.** The letters come from the pen of Manuel de Andrade de Figueiredo,
+the ornament from the carving and painting of Minas Gerais. Rebuilt on
+2026-10-17 from the earlier roadmap, which came from two study rounds:
+designers' articles on code fonts and peer-reviewed reading research. Every
+open item from those rounds is still here, re-sequenced around the new base.
 
-Principles carried from the research:
-- Legibility first. "Disfluent" fonts don't help memory (Diemand-Yauman 2011
-  failed to replicate, Meyer et al. 2015; Sans Forgetica: Taylor et al. 2020,
-  Geller et al. 2020). The pen's character must never cost reading.
-- Distinct `1 l I`, `0 O` stay.
+The rule that hasn't changed: **every phase ends with a measured check**
+(`tools/measure.py`) against the previous release. A change that doesn't
+hold its number doesn't ship, however Baroque it is.
+
+## The base: where each part of the font comes from
+
+| Part of the font | Source | Where it lives | Default? |
+|---|---|---|---|
+| **Regular / Bold** | Figueiredo, *Nova Escola* (1722), plate nº 9: hooked ascenders, ball terminals | Every letter | Yes |
+| **Italic / Bold Italic** | Figueiredo, plate nº 7, the *cursiva*: loops, entries, *rasgos* (his shapes, drawn with the Regular's broad nib) | Comments, emphasis | Yes |
+| **Capitals' feet** | Lapidary inscriptions on the *portadas* and church plaques of Minas | Capitals with free stems | Yes |
+| **Ball terminals** | The pen's *gota* (drop), as in Figueiredo's plates and the carved scroll ends | Regular `c f j r y`, `C G J S`, figures | Yes, where measured safe |
+| **Capitulares** (`titl`) | Aleijadinho's carved scroll capitals: the stone medallions and *portadas* (São Francisco de Assis, Ouro Preto) | Headings, lock screen | No, opt-in |
+| **Flourished capitals** (`swsh`) | Figueiredo's four models of ornamented capitals, copied in the Minas *Compromissos* | Headings, Days | No, opt-in |
+| **Florões** | *Rocalha* C- and S-scrolls, shells and crests from the carving | `❦ ❧ ☙`, U+1F650–1F67F | Only by code point |
+| **Cartelas** (frames) | The painted cartouches of Manuel da Costa Ataíde's ceilings | Ornamental brackets `❨❩❪❫❴❵` U+2768–2775 | Only by code point |
+| **Filactérios** (banners) | The ribbon scrolls that carry inscriptions in the carving and ceilings | Banner ends, Ornamental Dingbats block | Only by code point |
+| **Palette bridge** | Azulejo cobalt ≈ jenipapo, Ataíde's red ≈ urucum, gilded *talha* ≈ Casulla gold | Specimen, README, themes | n/a, not glyphs |
+
+**Ornament lives at the terminals and in opt-in places, structure in the
+stems.** A Baroque church is a regular plan under a carved surface. A
+monospace is the same: the cell and the stems stay regular, and the ornament
+goes where reading doesn't depend on it.
+
+## Principles
+
+- **Legibility first.** "Disfluent" fonts don't help memory: Diemand-Yauman
+  2011 failed to replicate (Meyer et al. 2015), and so did Sans Forgetica
+  (Taylor et al. 2020, Geller et al. 2020). Ornament never costs reading.
+- **Ornament in default text must pass the harness.** A ball, foot or hook
+  ships only if no confusable pair gets more than 0.01 worse.
+- **Everything else is opt-in**, by feature (`titl`, `swsh`) or by code point
+  (florões, cartelas, filactérios). Box drawing stays plain, because TUIs need
+  its corners to join.
+- **Distinct `1 l I` and `0 O` stay.**
 - *"A letra deveria ser um corpo com proporção, perfeito, igual nas alturas e
-  nas distâncias"* — Manuel de Andrade de Figueiredo, *Nova Escola* (1722).
-  The 1722 brief for a monospace: equal heights, equal distances.
-- Baroque ornament lives in **opt-in** places (italic, swash capitals,
-  ornament code points), never in default text: legibility first.
+  nas distâncias"* — Figueiredo, 1722. In English: a letter should be a body
+  in proportion, equal in its heights and its distances. It reads as the 1722
+  brief for a monospace.
 
-## Decisions (2026-10-16)
+## Decisions still in force (2026-10-16)
 
 | Question | Decision | Note |
 |---|---|---|
-| Upright *formata* Regular | **No — Regular stays slanted 7°** (the user doesn't need the dyslexia accommodation) | The italic slowdown was also measured in typical readers (Tinker; Slattery & Rayner): a modest cost, accepted knowingly |
-| Chancery `f` and signature `g` | **Keep, in every style** | Familiarity grows with exposure (Beier & Larson 2013) |
+| Upright Regular | **No. Regular stays slanted 7°** | The user doesn't need the dyslexia accommodation. The italic slowdown (Tinker; Slattery & Rayner) is a modest cost, accepted knowingly |
+| Chancery `f`, signature `g` | **Keep, in every style** | Familiarity grows with exposure (Beier & Larson 2013) |
 | Wide accessibility build | **Yes, cell 1320** | Closer to Zorzi et al. 2012's spacing |
 | Text weight (≈450) | **Yes** | Five styles |
-| Code ligatures | **On by default** (against Butterick, by choice) | In `liga`, not `calt`: `-liga` turns them off and keeps texture healing |
+| Code ligatures | **On by default** (against Butterick, by choice) | In `liga`, not `calt`, so `-liga` turns them off and keeps texture healing |
 
 ---
 
-## Phase A — Measurement harness ✅ 0.3.0
+## Done
 
-Done: `tools/measure.py` (≈4 s per run); baseline in `docs/metrics-0.2.0.md`,
-current numbers in `docs/metrics.md`.
+### 0.3.0: measurement and skeleton ✅
 
-### Original plan
+- **A. Harness.** `tools/measure.py` measures confusability, spacing CV,
+  roman/italic similarity, visual angle and sharpness. The baseline is in
+  `docs/metrics-0.2.0.md`.
+- **B2. x-height 1027 → 1080.** 0.216° at 12 pt on the LG. The laptop is at
+  0.160°, so read at ≥ 15 pt there.
+- **B3. Distinctiveness.** Mean confusability went from 0.908 to 0.894 at
+  12 px. `l/I` dropped from 0.969 to 0.903 and `i/l` from 0.936 to 0.865.
 
-Build `tools/measure.py`, rendering through FreeType/Pango with the system's
-real settings (hintslight, grayscale AA) at 12 px, 15 px and 20 px.
+### 0.4.0: Barroco na letra ✅ (built and measured, not yet released)
 
-| Metric | What it measures | Source of the idea |
+**Regular after plate nº 9**
+- Larger hooked ascenders on `b d h k`, each closed by a ball. `l` keeps its
+  plain entry: the hook made `l/I` worse.
+- Drops on `c f j r y`. The drops on `c` and `r` are small (radius 18), and
+  the `r` arm is pulled back. At full size they closed `c` toward `o` and
+  pulled `r` toward `n`.
+- Lapidary feet on `F H K M N P R T`, and drops on `C G J S` and on `2 3 5 6 9`.
+
+**Italic: the *corsiva* after plate nº 7**
+- His shapes, drawn with the Regular's broad nib.
+- Looped `h k`, and an `l` whose loop sits wholly above the x-height. Lower,
+  it crossed the stem where `t` has its bar.
+- A left curl on `d`, a straight `b`, and a *rasgo* on `p`.
+- `n` and `u` differ at both ends. `n` has the long lead-in and a short exit;
+  `u` enters straight and leaves long.
+- A short-armed `r` with no drop, and a `c` with no drop.
+
+| Measure (12 / 15 / 20 px) | 0.3.0 | 0.4.0 |
 |---|---|---|
-| **Confusability** | Bitmap similarity (normalised correlation after a slight blur) for `e/c a/o n/u s/e i/j/l/t/f 1/l/I 0/O ,/.` | Beier & Larson 2010 |
-| **Spacing evenness** | Variance of ink gaps between neighbours over the 200 most frequent bigrams of Portuguese, English and code | Monaspace texture healing; Commit Mono smart kerning |
-| **Roman/italic distance** | Similarity of each letter's Regular vs Italic bitmap (lower = easier to tell comments from code) | Operator Mono, JetBrains Mono |
-| **Visual angle** | x-height in degrees at the user's real setups (LG 97 PPI @60 cm, laptop 197 PPI @50 cm) | Legge & Bigelow 2011 (critical print size ≈0.2°) |
-| **Sharpness** | Edge contrast at 12 px, hinted vs unhinted | FreeType docs |
+| Regular confusability (mean) | 0.894 / 0.874 / 0.850 | **0.892 / 0.872 / 0.848** |
+| Italic confusability (mean) | 0.894 / 0.876 / 0.852 | **0.884 / 0.859 / 0.829** |
+| Roman/italic similarity (15 px; lower is better) | 0.976 | **0.968** (Radon 0.956) |
+| Spacing CV | 0.283 | 0.283 |
+| Pairs more than 0.01 worse, either style, any size | n/a | **none** |
 
-Deliverable: baseline numbers for Radon and Jandí 0.2.0 in `docs/metrics.md`,
-and a proof page that regenerates from the harness.
+In the Italic, `i/l` went from 0.916 to 0.806 (12 px) and `l/t` from 0.837 to 0.750
+(20 px).
 
-## Phase B — Foundation: the skeleton changes everything else depends on
+**Rejected by the numbers:**
+- **Figueiredo's pressure quill for the Italic.** It filled the counters:
+  eight pairs got worse, with `c/o` +0.044 and `n/u` +0.036, even lightened
+  to (165, 120). The same quill on the Regular made five pairs worse.
+- **Drops on the italic `c` and `r`.**
+- **A looped italic `b`**, read as `h`.
+- **An inward-curling `h`**, read as `b` (0.994).
+- **The corsiva's long exit on `t`**, which matched the `l` tail.
+- **The `ASC` hook on the Regular `l`.**
 
-~~B1. Upright formata Regular~~ — dropped by decision; Regular stays 7°.
+---
 
-**B2. x-height +5% (1027 → 1080) ✅ 0.3.0.** Result: 0.205° → **0.216°** on the
-LG at 12 pt (laptop 0.152° → 0.160°: still below 0.2°, read at ≥ 15 pt there).
-No mark clipped; stacked Vietnamese capitals fit. Raises the visual angle at the same point
-size (JetBrains Mono maximises x-height for the same reason). Re-check
-ascender/descender room, accent clearance, stacked Vietnamese capitals inside
-the 1990 ascent.
-*Check:* visual angle at 12 pt on the LG ≥ 0.21°; no mark clipped.
+## Next
 
-**B3. Distinctiveness pass.** Beier & Larson's most-confused groups.
-- `i j l t f`: wider feet and hooks (narrow letters gain from widening; the
-  cell has room).
-- `n/u`: break the mirror (different entry vs exit), `a/o`: clearer stem,
-  `e/c`: larger eye, `s`: distinct spine.
-*Check (revised after measuring):* mean confusability lower than 0.2.0 at
-every size, and no pair more than 0.01 worse than 0.2.0. "≤ Radon for every
-pair" proved unrealistic where a decision differs by design: `f/j` is 0.48 in
-Radon only because Radon's `f` has no descender, and ours keeps it.
+### 0.5.0: spacing (the regular plan under the carving)
 
-**B3 ✅ 0.3.0**, four measured iterations. Mean confusability 0.908 → **0.894**
-(12 px), 0.886 → 0.874 (15 px), 0.864 → 0.850 (20 px); no pair worse than
-0.2.0 by > 0.01. Biggest gains: `l/I` 0.969 → 0.903, `i/l` 0.936 → 0.865 (now
-below Radon), `h/b` 0.957 → 0.912, `a/o` 0.979 → 0.960. Two ideas were
-rejected by the numbers: a lead-in on `u`'s right stem (n/u got worse) and a
-tall `t` with a long exit (it started to read as the new `l`). Final forms:
-narrower notched `a`, wider `o`, footed `b`, long-exit `h`, short lower hook on
-`f` vs big round hook on `j`, wider `i`, sweeping-tail `l`, `t` with a
-right-reaching bar, wider `I` bars, longer flag on `1`.
+**D1. Optical centring.** Centre each letter on its visual mass, not only its
+bounding box. The Baroque terminals moved mass sideways: the balls on `c r f j
+y` and the hooks on `b d h k`. Targets: `r f j t c L F P 7 1`.
 
-## Phase C — Corsiva Italic, after Figueiredo
+**D2. Texture healing from Jandí's own widths.** Today's shifts are copied from
+Radon's shapes. Recompute giver and taker classes from the new ink widths,
+then the shifts that equalise the gaps (Commit Mono style).
 
-Model: the *grifa* and *cursiva* plates of Manuel de Andrade de Figueiredo's
-*Nova Escola para aprender a ler, escrever e contar* (Lisbon, 1722). He was
-born in the Captaincy of Espírito Santo, Brazil; by 1725 his models were
-used for the capitals of the brotherhood statute books (*Compromissos*) of
-Minas Gerais — Ouro Preto, Sabará, Caeté, Vila Rica — including brotherhoods
-of Black, mixed-race and enslaved people (Almada 2011). Public domain:
-digitised at the Biblioteca Nacional de Portugal (purl.pt/107) and the
-Library of Congress (loc.gov/item/65058981), so the plates can be studied
-and measured directly. His *rasgos* (pen flourishes) inform the entry and exit
-strokes; his "interlaced circular strokes" the loops.
+**D3. Jandi Mono Wide, cell 1320.** Extra-large spacing made dyslexic children
+read 20% faster with half the errors (Zorzi et al. 2012). The default stays
+1160, since added letter spacing slows typical readers (Slattery & Rayner 2013).
 
-Italic and Bold Italic become the *corsiva*: looped ascenders (`b d h k l`),
-longer exits, entry hooks, slant ≈13°. With the Regular staying at 7°, the
-angle alone separates them by only 6°, so this phase carries the whole
-distinction: comments differ from code by **shape**, which also helps
-colour-blind readers (Hoefler's reason for Operator Mono's cursive).
-*Check:* roman/italic distance clearly above 0.2.0's; italic confusability
-still ≤ Radon.
+**D4. Mark-to-mark stacking (`mkmk`).** `ǘ ǚ` are built from parts and the
+second mark doesn't stack.
 
-## Phase D — Spacing system
+*Check:* spacing CV at or below 0.283 (0.3.0), and lower in Wide. Wide builds
+and installs. `ǘ` stacks.
 
-**D1. Optical centring.** Centre each letter on its visual mass (ink
-centroid blended with the bounding box), not only the box: `r f j t c L F P 7 1`.
+### 0.6.0: pen punctuation and ligatures
 
-**D2. Texture healing re-derived from Jandí's own widths.** Today's shifts are
-copied from Radon's shapes. Recompute giver/taker classes from Jandí's ink
-widths (the narrower forms create new givers: `r t f j c s`) and the shift
-amounts that equalise gaps, Commit Mono style (it documents 44 units for `o`
-between `m` and `i`).
+**E1. Punctuation as pen drops.** Redraw `. , : ; ' " ! ? ( ) [ ] { } - _ / \ * +
+= < > | @ # &` with the pen.
+- One drop size is shared by `. : ; i j ä` and the ball terminals, so the
+  Baroque *gota* becomes the font's unit of punctuation.
+- The comma is a drop with a tail, unmistakable from the period.
+- Braces follow the carved C-scroll: an S-curve with a pointed middle, still
+  plain enough to read at 12 px.
 
-**D3. Jandi Mono Wide (accessibility build), cell 1320.** Same design, wider cell:
-extra-large spacing made dyslexic children read 20% faster with half the
-errors (Zorzi et al. 2012). Default stays 1160 (Slattery & Rayner 2013:
-added letter spacing slows typical readers).
-*Check:* spacing-evenness variance below 0.2.0's; Wide builds and installs.
+**E2. Ligatures on by default.** Move all of Radon's ligatures (8 in `liga`,
+~59 in ss01–ss10) into `liga`, then redraw each with the pen: they are still
+Radon's monoline shapes. Arrows `-> =>` take a pen-cut head. Texture healing
+stays alone in `calt`.
 
-## Phase E — Pen punctuation, symbols and ligatures
+*Check:* confusability of `,/.`, `:/;` and `(/[/{` at or below Radon's.
+`=> != -> ===` ligate with no feature flags in Ghostty and foot. `-liga`
+restores plain characters with texture healing intact.
 
-**E1.** Redraw `. , : ; ' " ! ? ( ) [ ] { } - _ / \ * + = < > | @ # &` with
-the pen. Large and clear in code (Input), comma unmistakable from period
-(JetBrains), one consistent dot size shared with `i j ä`.
+### 0.7.0: outline quality and the Text weight
 
-**E2. Code ligatures on by default.** Radon keeps 8 ligatures in `liga`
-(`|| !! ;; // ...`) and ~59 behind opt-in stylistic sets: ss01 `== === =~`,
-ss02 `>= <=`, ss03 arrows `-> ~> -->`, ss04 markup `</ /> <>`, ss05 `|> <|`,
-ss07 `::`, ss08 `..`, ss09 `=> >> <== >>=`, ss10 `#[ #(`. Move all of them
-into `liga` (texture healing stays alone in `calt`, so `-liga` disables
-ligatures without losing healing), and redraw every ligature glyph with the
-pen: they are still Radon's monoline shapes.
-*Check:* confusability of `,/.` `:/;` `(/[/{` ≤ Radon; braces read at 12 px;
-`=> != -> ===` form ligatures with no feature flags in Ghostty and foot, and
-`-liga` restores plain characters with texture healing intact.
+**F1. Smooth curves.** Fit cubic Béziers to the pen outlines (55–120 straight
+segments per letter today, against Radon's 13–20). The balls and loops are
+where facets show first, at the lock-screen clock and when zooming.
 
-**E4. Mark-to-mark stacking (`mkmk`).** Found while checking B2: `ǘ ǚ`
-(Pinyin) aren't precomposed in Radon, so they're built from parts, and the
-second mark doesn't stack (no `mkmk`). Present since 0.1.0.
+**F2. Hinting.** Run `otfautohint` (afdko) in `build.sh` so hintslight can
+snap the x-height and baseline.
 
-**E3. Florões (ornaments, opt-in by code point).** Pen-drawn fleurons after
-Figueiredo's borders and the *rocalha* (rocaille) C- and S-scrolls of the
-*rococó mineiro* (Aleijadinho's carving, Ataíde's ceilings at São Francisco
-de Assis, Ouro Preto), placed at Unicode's ornament code points: `❦ ❧ ☙` and
-the Ornamental Dingbats block (U+1F650–1F67F). Usable as separators in notes,
-prompts, the lock screen; no effect on normal text. Box drawing stays plain:
-TUIs need its corners to join.
+**G. Jandi Mono Text (≈450, nib ×1.08).** For the Jandí Light theme and the LG
+at 97 PPI, where thin strokes fade. The corsiva's hairlines matter most here.
 
-## Phase F — Outline quality and rendering
+*Check:* sharpness at 12 px up, outline points down ≥ 5×. In Text, stems are
+8% heavier and hairlines ≥ 0.6 px at 12 px.
 
-**F1. Smooth curves.** Fit cubic Béziers to the pen outlines (today 55–120
-straight segments per letter vs Radon's 13–20 curves): no facets at the
-lock-screen clock or when zooming, lighter files.
-**F2. Hinting.** Run Adobe's `otfautohint` (afdko) in `build.sh`: 0.2.0 has
-no hints, so with the system's hintslight FreeType can't snap x-height and
-baseline to the pixel grid.
-*Check:* sharpness at 12 px up vs 0.2.0; outline point count down ≥ 5×.
+### 0.8.0: ornament (opt-in; the carving and the ceiling)
 
-## Phase G — A "Text" weight for light backgrounds
+Built after F1 so the ornament is drawn once, in final curves. Nothing in this
+phase changes default text.
 
-Thin strokes fade on light grounds; Commit Mono recommends 450 there vs 400
-on dark. Add **Jandi Mono Text** (nib ×1.08) for the Jandí Light theme and
-the LG at 97 PPI.
-*Check:* stem weight +8%, hairline ≥ 0.6 px at 12 px.
+**I1. Florões.** *Rocalha* C- and S-scrolls, the shell and the crest, drawn
+with the pen at `❦ ❧ ☙` and in the Ornamental Dingbats block (U+1F650–1F67F).
+They serve as separators in notes, prompts and the lock screen.
 
-## Phase I — Capitulares (swash capitals, opt-in)
+**I2. Cartelas.** Frames after Ataíde's cartouches at the ornamental brackets
+`❨❩❪❫❴❵` (U+2768–2775). They enclose a word or a number like a painted
+cartouche on a ceiling, e.g. `❪ 1722 ❫`.
 
-Figueiredo gives four models of ornamented capitals, "from the most elaborate
-to the simplest"; the Minas *Compromissos* copied them. Draw A–Z swash
-capitals in the pen, behind the OpenType `swsh` feature (off by default):
-for headings, the lock-screen date, Days. Never on in the terminal.
-*Check:* `swsh` off → no change to any metric; on → capitals render and stay
-inside the line height.
+**I3. Filactérios.** Ribbon-scroll banner ends that turn a line of text into
+an inscribed banner. Placed in the Ornamental Dingbats block.
 
-## Phase H — Validation and release
+**I4. Capitulares, two sets:**
+- `titl`: Aleijadinho's carved scroll capitals, heavy and three-dimensional in
+  feeling, for headings and the lock-screen date.
+- `swsh`: Figueiredo's flourished pen capitals, light, for Days and titles.
+- Both stay inside the line height and are never on in the terminal.
 
-- **Reading-speed self-test** page (the font is OFL, so it can be embedded):
-  timed passages in Jandí Mono (current release), Jandí Mono Wide, Jandí Mono
-  Text and Radon. Best fonts differ per reader
-  (Wallace et al. 2022) — measure the user's own fit.
-- **fontbakery** QA (OFL metadata, names, vertical metrics, monospace checks).
-- Reading-size guidance in the README: x-height ≥ 0.2° — on the laptop that
-  means ≥ 15 pt for long reading.
-- Release 1.0: README, FONTLOG, specimen, Omarchy: `omarchy font set "Jandi Mono NF"`.
+*Check:* with the features off, every metric is identical to 0.7.0. With them
+on, glyphs render in Ghostty, Quickshell and Chromium, and nothing clips.
+
+### 1.0.0: validation and release
+
+- **Reading-speed self-test** page: timed passages in Jandí Mono, Wide, Text
+  and Radon. The best font differs per reader (Wallace et al. 2022), so
+  measure the user's own fit.
+- **fontbakery** QA: OFL metadata, names, vertical metrics, monospace checks.
+- **Specimen** as a Baroque *folha*: the palette bridge (cobalt, urucum, gold),
+  the capitulares and florões in use, and credits to Figueiredo and the Minas
+  sources.
+- README reading-size guidance: an x-height of at least 0.2° means ≥ 15 pt on
+  the laptop for long reading.
+- Omarchy: `omarchy font set "Jandi Mono NF"`.
 
 ---
 
@@ -192,9 +213,20 @@ inside the line height.
 
 | Version | Phases | Why this order |
 |---|---|---|
-| 0.3.0 | A + B2 + B3 | Measure first; then the skeleton changes everything later builds on |
-| 0.4.0 | C + D | Italic and spacing sit on the new skeleton |
-| 0.5.0 | E (+ florões) | Punctuation and ligatures need the final dot size and spacing |
-| 0.6.0 | F + G | Curves and hints last in the outline pipeline; Text weight reuses it |
-| 0.7.0 | I | Capitulares after the outline pipeline is final |
-| 1.0.0 | H | Validate with the user's own reading, then release |
+| 0.3.0 ✅ | A, B2, B3 | Measure first, then the skeleton |
+| 0.4.0 ✅ | Barroco na letra (Regular nº 9, corsiva nº 7, feet, balls) | The base inspiration goes into the letters before anything is built on them |
+| 0.5.0 | D1–D4 | Spacing re-derived from the Baroque shapes |
+| 0.6.0 | E1, E2 | Punctuation and ligatures need the final drop size and spacing |
+| 0.7.0 | F1, F2, G | Curves and hints close the outline pipeline. Text reuses it |
+| 0.8.0 | I1–I4 | Ornament drawn once, in final curves, all opt-in |
+| 1.0.0 | Validation | The user's own reading decides |
+
+## Sources
+
+- Manuel de Andrade de Figueiredo, *Nova Escola para aprender a ler, escrever
+  e contar* (Lisbon, 1722). Public domain, Biblioteca Nacional de Portugal,
+  purl.pt/107. Also at the Library of Congress, loc.gov/item/65058981.
+- Márcia Almada (2011), on Figueiredo's models in the Minas *Compromissos*.
+- The carving of Antônio Francisco Lisboa, "Aleijadinho", and the painting of
+  Manuel da Costa Ataíde, studied through Wikimedia Commons photographs. Each
+  image's credit is kept beside it in the specimen.

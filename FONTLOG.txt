@@ -20,6 +20,23 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+0.4.0 (2026-10-17): Barroco na letra
+- The base inspiration is now the Luso-Brazilian Baroque and the rococó
+  mineiro (see ROADMAP.md). The letters follow Manuel de Andrade de
+  Figueiredo, Nova Escola para aprender a ler, escrever e contar (Lisbon,
+  1722; public domain, Biblioteca Nacional de Portugal, purl.pt/107).
+- Regular and Bold, after plate nº 9: larger hooked ascenders on b d h k,
+  closed by a ball; ball terminals (the pen's drop) on c f j r y, C G J S and
+  the figures 2 3 5 6 9; lapidary foot serifs on F H K M N P R T.
+- Italic and Bold Italic become a corsiva after plate nº 7: looped h k, a
+  loop on l kept above the x-height, the bastarda d, a rasgo on p, long
+  lead-ins and exits, and n and u that differ at both ends.
+- Measured against 0.3.0 (docs/metrics.md): no confusable pair worse by more
+  than 0.01 in either style at any size. The italic's mean similarity fell
+  0.894 → 0.884 at 12 px, and roman/italic similarity 0.976 → 0.968.
+- Tried and dropped: Figueiredo's pressure quill. It filled the counters at
+  terminal sizes, so both italics keep the broad nib.
+
 0.3.0 (2026-10-16)
 - Measurement harness (tools/measure.py): confusability of easily confused
   characters, spacing evenness, roman/italic similarity, visual angle of the

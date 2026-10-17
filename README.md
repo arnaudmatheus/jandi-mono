@@ -35,8 +35,14 @@ between letters (no joins), which is exactly what a monospace grid needs.
 - **A tighter cell than Radon:** 1160 units (0.58 em) instead of 1240, so the
   narrower chancery letters don't float apart. Radon's symbols and box
   drawing are scaled with it, so box lines still meet edge to edge.
-- Regular, Bold, Italic, Bold Italic. The Italic leans 13° against the
-  Regular's 7°, so italic comments read apart from code.
+- **Baroque letters, after Manuel de Andrade de Figueiredo's *Nova Escola*
+  (1722).** The Regular takes his hooked ascenders and ball terminals, with
+  lapidary feet on the capitals. The Italic is a *corsiva* with his loops and
+  *rasgos*, and leans 13° against the Regular's 7°. Italic comments read apart
+  from code by shape as well as by angle.
+- **Every change is measured** (`docs/metrics.md`): no ornament ships if it
+  makes an easily confused pair (`r/n`, `l/1/I`, `c/o`…) harder to tell apart.
+- Regular, Bold, Italic, Bold Italic.
 
 ## Families
 

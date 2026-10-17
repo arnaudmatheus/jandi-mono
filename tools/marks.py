@@ -8,8 +8,8 @@ def _above(*strokes): return ('above', list(strokes))
 def _below(*strokes): return ('below', list(strokes))
 
 MARKS = {
-    0x300: _above(path(('M', (70, 10)), ('L', (-120, 190)))),                                   # grave
-    0x301: _above(path(('M', (-60, 10)), ('L', (130, 190)))),                                   # acute
+    0x300: _above(path(('M', (-120, 190)), ('L', (70, 10)))),                                   # grave: drawn downward
+    0x301: _above(path(('M', (130, 190)), ('L', (-60, 10)))),                                   # acute: drawn downward
     0x302: _above(path(('M', (-175, 10)), ('L', (0, 185)), ('L', (175, 10)))),                  # circumflex
     0x303: _above(path(('M', (-270, 0)), ('C', (-190, 115), (-100, 120), (0, 60)),              # tilde: pen wave
                        ('C', (100, 0), (190, 5), (270, 115)))),
@@ -21,7 +21,7 @@ MARKS = {
                        ('C', (80, 80), (20, 70), (10, 20)))),
     0x30A: _above(path(('M', (0, 30)), ('C', (90, 30), (110, 210), (0, 210)),                   # ring
                        ('C', (-110, 210), (-90, 30), (0, 30)))),
-    0x30B: _above(path(('M', (-170, 10)), ('L', (-20, 190))), path(('M', (50, 10)), ('L', (200, 190)))),  # double acute
+    0x30B: _above(path(('M', (-20, 190)), ('L', (-170, 10))), path(('M', (200, 190)), ('L', (50, 10)))),  # double acute
     0x30C: _above(path(('M', (-175, 185)), ('L', (0, 10)), ('L', (175, 185)))),                 # caron
     0x31B: ('horn', [path(('M', (0, 0)), ('C', (80, 40), (110, 120), (80, 200)))]),              # horn (ơ ư)
     0x323: _below(path(('M', (-18, -172)), ('L', (18, -136)))),                                 # dot below

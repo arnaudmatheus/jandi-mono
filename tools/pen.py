@@ -76,7 +76,7 @@ def strokes_y():
                 ('C', (700, B), (830, 150), (905, 320)))
     stem = path(('M', (905, T)), ('L', (905, -150)), ('C', (905, -290), (800, -368), (650, -368)),
                 ('C', (520, -368), (420, -320), (360, -240)))
-    return [left, stem]
+    return [left, stem, BALLAT(358, -232)]
 
 def strokes_g():
     # Inspirado (não copiado) na assinatura de Michelangelo: o descendente faz
@@ -93,8 +93,9 @@ def strokes_f():
     # fica com o gancho grande; a 12 px os dois eram quase iguais (0.887).
     hook = path(('M', (1010, 1330)), ('C', (960, 1450), (850, 1482), (750, 1482)), ('C', (620, 1482), (560, 1400), (560, 1250)),
                 ('L', (560, -170)), ('C', (560, -290), (510, -350), (430, -355)))
+    ball = BALLAT(1012, 1318)
     bar = path(('M', (280, T - 10)), ('L', (900, T - 10)))
-    return [hook, bar]
+    return [hook, bar, ball]
 
 def strokes_dotlessi():
     return [path(('M', (400, 865)), ('L', (560, T)), ('L', (560, 170)), ('C', (560, 80), (630, 40), (760, 100)))]
@@ -110,41 +111,59 @@ def strokes_tilde(cx=620, y=1190):
 # Ascender/descender skeleton limits (outline lands ≈ at Radon's 1550 / −426).
 A, D = 1482, -360
 ENTRY = lambda x, top: [('M', (x - 90, top - 85)), ('L', (x, top))]      # the chancery lead-in
+# Ascender top after Figueiredo's calm hand (Nova Escola, plate nº 9): the
+# stroke starts with a small hook curling right, then comes down as the stem.
+# Used on b d h k. The Regular takes his forms but keeps the broad nib: his
+# pressure quill, measured on the Regular, cost legibility at 12 px (five
+# confusable pairs worse) and made it too close to the Italic — the quill is
+# the Italic's signature.
+ASC = lambda x: [('M', (x + 215, A - 175)), ('C', (x + 250, A - 60), (x + 180, A + 25), (x + 95, A + 25)),
+                 ('C', (x + 30, A + 25), (x, A - 30), (x, A - 110))]
+# Ball terminal — the signature of Baroque type (c. 1700–1760) and of the
+# ball under Figueiredo's ascender curl: a short dab of the same pen.
+def BALLAT(x, y, r=26):
+    return path(('M', (x - r, y - r)), ('L', (x + r, y + r)))
+
+# The plate's ascender ends in a small ball under the curl; drawn as a dab.
+BALL = lambda x: path(('M', (x + 196, A - 182)), ('L', (x + 230, A - 150)))
 EXIT = lambda x: [('L', (x, 170)), ('C', (x, 90), (x + 45, 55), (x + 125, 95))]  # hairline exit flick
 BOWL_R = [('C', (400, 880), (510, T), (640, T)), ('C', (820, T), (910, 800), (910, 520)),
           ('C', (910, 250), (780, B), (600, B)), ('C', (470, B), (380, 100), (330, 170))]
 ARCH = [('C', (400, 900), (520, T), (640, T)), ('C', (800, T), (905, 880), (905, 700))]
 
 def strokes_b():
-    return [path(*ENTRY(330, A), ('L', (330, 70)), ('C', (330, 30), (290, 10), (230, 20))), path(('M', (330, 620)), *BOWL_R)]
+    return [path(*ASC(330), ('L', (330, 70)), ('C', (330, 30), (290, 10), (230, 20))), BALL(330), path(('M', (330, 620)), *BOWL_R)]
 
 def strokes_c():
-    return [path(('M', (900, 830)), ('C', (840, 940), (740, T), (630, T)), ('C', (430, T), (320, 760), (320, 520)),
+    return [BALLAT(892, 828, 18), path(('M', (890, 836)), ('C', (840, 940), (740, T), (630, T)), ('C', (430, T), (320, 760), (320, 520)),
                  ('C', (320, 240), (440, B), (620, B)), ('C', (760, B), (860, 130), (925, 230)))]
 
 def strokes_d():
-    return [strokes_a()[0], path(*ENTRY(905, A), *EXIT(905))]
+    return [strokes_a()[0], path(*ASC(905), *EXIT(905)), BALL(905)]
 
 def strokes_h():
-    return [path(*ENTRY(330, A), ('L', (330, 40))),
+    return [BALL(330), path(*ASC(330), ('L', (330, 40))),
             path(('M', (330, 640)), *ARCH, ('L', (905, 170)), ('C', (905, 80), (960, 40), (1080, 100)))]
 
 def strokes_dotlessj():
     return [path(('M', (430, 880)), ('L', (560, T)), ('L', (560, -150)), ('C', (560, -300), (440, D), (330, D)),
-                 ('C', (240, D), (190, -310), (185, -250)))]
+                 ('C', (240, D), (190, -310), (185, -250))), BALLAT(188, -240)]
 
 def strokes_j():
     return strokes_dotlessj() + [path(('M', (557, 1267)), ('L', (593, 1303)))]
 
 def strokes_k():
-    stem = path(*ENTRY(330, A), ('L', (330, 40)))
+    stem = path(*ASC(330), ('L', (330, 40)))
+    ball = BALL(330)
     loop = path(('M', (330, 430)), ('C', (480, 650), (760, 990), (870, 885)), ('C', (950, 805), (830, 600), (470, 520)))
     leg = path(('M', (600, 545)), ('C', (720, 420), (790, 130), (880, 75)), ('C', (930, 45), (980, 60), (1030, 100)))
-    return [stem, loop, leg]
+    return [stem, ball, loop, leg]
 
 def strokes_l():
     # B3: cauda longa que sobe para a direita — nada mais na fonte tem esse
     # desenho, então l deixa de parecer I, 1 ou i a 12 px.
+    # l mantém a entrada chanceleresca: com o gancho de Figueiredo no topo, l/I
+    # piorava (0.903 → 0.919); a cauda e a entrada são o que o separa do I.
     return [path(*ENTRY(560, A), ('L', (560, 260)), ('C', (560, 110), (630, 45), (730, 55)),
                  ('C', (810, 65), (860, 120), (885, 190)))]
 
@@ -163,7 +182,8 @@ def strokes_q():
 
 def strokes_r():
     return [path(*ENTRY(330, T), ('L', (330, 40))),
-            path(('M', (330, 640)), ('C', (400, 880), (520, T), (650, T)), ('C', (750, T), (830, 930), (880, 860)))]
+            path(('M', (330, 640)), ('C', (400, 880), (520, T), (650, T)), ('C', (740, T), (810, 945), (850, 895))),
+            BALLAT(852, 888, 18)]
 
 def strokes_s():
     return [path(('M', (860, 880)), ('C', (800, 950), (700, T), (610, T)), ('C', (470, T), (380, 900), (380, 780)),
@@ -215,7 +235,36 @@ COMPOSITES = {
 def slant(pts):
     return [(x + y * math.tan(SLANT), y) for x, y in pts]
 
+# Pen model. "broad": the Renaissance edged nib at a fixed angle (Regular,
+# Bold). "pointed": the 18th-century pointed quill with pressure, as on
+# Figueiredo's plates (Italic): upstrokes are hairlines, downstrokes swell in
+# proportion to how much they move down. In that model w is the full shade
+# and t the hairline.
+NIB = "broad"
+
 def sweep(pts, w, t):
+    if NIB == "pointed":
+        return sweep_pointed(pts, w, t)
+    return sweep_broad(pts, w, t)
+
+def sweep_pointed(pts, w, t):
+    from shapely.geometry import LineString
+    segs = list(zip(pts, pts[1:]))
+    length = sum(math.dist(a, b) for a, b in segs)
+    if length < 120:                                  # dots and dabs: full weight
+        return unary_union([LineString([a, b]).buffer(w / 2, quad_segs=6) for a, b in segs] or
+                           [LineString([pts[0], pts[0]]).buffer(w / 2)])
+    raw = []
+    for a, b in segs:
+        d = math.dist(a, b) or 1.0
+        raw.append(max(0.0, (a[1] - b[1]) / d) ** 1.5)  # 1 = straight down the slant
+    # A quill swells and tapers; it never jumps. Smooth the pressure along the
+    # stroke so neighbouring segments don't leave knobs where weight changes.
+    k = 4
+    smooth = [sum(raw[max(0, i - k):i + k + 1]) / len(raw[max(0, i - k):i + k + 1]) for i in range(len(raw))]
+    return unary_union([LineString([a, b]).buffer((t + (w - t) * s) / 2, quad_segs=6) for (a, b), s in zip(segs, smooth)])
+
+def sweep_broad(pts, w, t):
     ux, uy = (w / 2) * math.cos(PEN), (w / 2) * math.sin(PEN)
     vx, vy = -(t / 2) * math.sin(PEN), (t / 2) * math.cos(PEN)
     def corners(p):
