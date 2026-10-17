@@ -111,7 +111,7 @@ In the Italic, `i/l` went from 0.916 to 0.806 (12 px) and `l/t` from 0.837 to 0.
 - **The corsiva's long exit on `t`**, which matched the `l` tail.
 - **The `ASC` hook on the Regular `l`.**
 
-### 0.5.0: spacing, the regular plan under the carving ✅ (built and measured, not yet released)
+### 0.5.0: spacing, the regular plan under the carving ✅
 
 **D1. Optical centring, on `r` and `k` only.** They now centre on their ink's
 centre of mass instead of their bounding box. Each letter was tested alone:
@@ -158,34 +158,75 @@ Wide's one exception is not a shape change. The outlines are the default's;
 the 1320 cell puts each letter at a different pixel phase at 12 px. Nudging
 the letters off-centre to match would show at large sizes, so it stays.
 
+### 0.6.0: pen punctuation and ligatures ✅ (built and measured, not yet released)
+
+**E1. Punctuation with the pen** (`tools/punct.py`).
+- **Drawn from skeletons:** `. , : ; ' " ! ? ( ) [ ] { }`. Their unit is the
+  *gota*, a teardrop the nib leaves turning on the spot. It rests on the
+  baseline like Radon's dot.
+- **The comma:** a smaller drop whose tail falls straight while the nib is
+  at full width and turns left only at the end. Every drawn glyph sits on
+  Radon's own centre, so code columns don't move.
+- **The carved C-scroll:** braces whose two curves meet in a deep point.
+  Parentheses are deep bows, and brackets have long square arms.
+- **Re-stroked from Radon:** `- _ / \ * + = < > | @ # & ~ ^`, their
+  texture-healing and contextual variants, and all ~85 ligature glyphs. The
+  nib is swept along the medial axis of Radon's outline (Voronoi edges of the
+  outline, with loose ends pushed back out to it). Radon's geometry and
+  cross-cell joins stay, and the weight comes from our nib alone: hyphen 163,
+  `|` 175, against the `l` stem's 175 (Radon's were 178 and 182).
+  - Round dots inside ligatures (`...`, `!=`, `::`) become drops.
+  - Solid shapes (the triangle of `|>`) stay solid, leaned to our angle.
+  - Everything is sheared from Radon's angle (0°, 11° italic) to ours (7°,
+    13°) around the math axis.
+
+**E2. Ligatures on by default.** All ten stylistic sets moved into `liga`,
+including `ss06` (`### +++ ___ &&`). Verified with HarfBuzz, which Ghostty and
+foot both shape with: `=> -> != === <= |> :: ###` ligate with no feature flag,
+`-liga` returns every plain character, and texture healing (`calt`) still
+runs.
+
+**Iterations the numbers decided:**
+- **Uniform thinning of Radon's outlines** (erode, then sweep the nib)
+  failed. After the rescale to our 1160 cell, diagonals are thinner than the
+  thinning depth, so `< > /` and the arrows broke apart. The medial axis
+  replaced it.
+- **The comma:** a tail that turned left at once vanished at 12 px (`:/;`
+  0.874 → 0.947). Six tails were scored. The winner falls straight first,
+  under a smaller head, and stays inside the 500-unit descent.
+- **Colon dots at 0.85 of the period's drop.** At full size, the shared top
+  dot made `;` read as `:`.
+- **Parentheses and braces:** bow depth and brace point were scored at four
+  and three depths.
+
+| Measure | 0.5.0 | 0.6.0 | Radon |
+|---|---|---|---|
+| `,/.` at 12 px | 0.922 | **0.917** | 0.918 |
+| `:/;` at 12 px | 0.874 | **0.876** | 0.899 |
+| `(/[` at 12 px | 0.878 | **0.811** | 0.819 |
+| `[/{` at 12 px | 0.914 | **0.884** | 0.921 |
+| Regular confusability, mean 12 / 15 / 20 px | 0.892 / 0.872 / 0.845 | **0.887 / 0.864 / 0.828** | |
+| Italic confusability, mean 12 / 15 / 20 px | 0.884 / 0.859 / 0.827 | **0.879 / 0.849 / 0.808** | |
+| Pairs more than 0.01 worse (Regular, Italic, Wide) | n/a | **none** | |
+| Sharpness at 12 px, hintslight | 0.143 | 0.136 | 0.158 |
+
+**Not done, carried to 0.7.0:** the letters' dots (`i j ä`) and the ball
+terminals still use the small dab, not the punctuation drop. Dot size feeds
+`i/l` and `i/j`, so that change needs its own measured pass. Sharpness dipped
+with the new curves, which is F2's job (hinting).
+
 ---
 
 ## Next
-
-### 0.6.0: pen punctuation and ligatures
-
-**E1. Punctuation as pen drops.** Redraw `. , : ; ' " ! ? ( ) [ ] { } - _ / \ * +
-= < > | @ # &` with the pen.
-- One drop size is shared by `. : ; i j ä` and the ball terminals, so the
-  Baroque *gota* becomes the font's unit of punctuation.
-- The comma is a drop with a tail, unmistakable from the period.
-- Braces follow the carved C-scroll: an S-curve with a pointed middle, still
-  plain enough to read at 12 px.
-
-**E2. Ligatures on by default.** Move all of Radon's ligatures (8 in `liga`,
-~59 in ss01–ss10) into `liga`, then redraw each with the pen: they are still
-Radon's monoline shapes. Arrows `-> =>` take a pen-cut head. Texture healing
-stays alone in `calt`.
-
-*Check:* confusability of `,/.`, `:/;` and `(/[/{` at or below Radon's.
-`=> != -> ===` ligate with no feature flags in Ghostty and foot. `-liga`
-restores plain characters with texture healing intact.
 
 ### 0.7.0: outline quality and the Text weight
 
 **F1. Smooth curves.** Fit cubic Béziers to the pen outlines (55–120 straight
 segments per letter today, against Radon's 13–20). The balls and loops are
 where facets show first, at the lock-screen clock and when zooming.
+
+**F4. One drop for letters and punctuation.** Give `i j ä` and the ball
+terminals the punctuation's *gota*, sized by measurement (`i/l`, `i/j`).
 
 **F3. The pairs healing can't reach.** Narrow beside narrow (`li ti fi`) is
 the loosest and wide beside wide (`mm mw ww`) the tightest; Radon's healing
@@ -249,8 +290,8 @@ on, glyphs render in Ghostty, Quickshell and Chromium, and nothing clips.
 | 0.3.0 ✅ | A, B2, B3 | Measure first, then the skeleton |
 | 0.4.0 ✅ | Barroco na letra (Regular nº 9, corsiva nº 7, feet, balls) | The base inspiration goes into the letters before anything is built on them |
 | 0.5.0 ✅ | D1–D4 | Spacing re-derived from the Baroque shapes |
-| 0.6.0 | E1, E2 | Punctuation and ligatures need the final drop size and spacing |
-| 0.7.0 | F1, F2, G | Curves and hints close the outline pipeline. Text reuses it |
+| 0.6.0 ✅ | E1, E2 | Punctuation and ligatures need the final drop size and spacing |
+| 0.7.0 | F1–F4, G | Curves and hints close the outline pipeline. Text reuses it |
 | 0.8.0 | I1–I4 | Ornament drawn once, in final curves, all opt-in |
 | 1.0.0 | Validation | The user's own reading decides |
 

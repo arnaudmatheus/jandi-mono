@@ -22,6 +22,22 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+0.6.0 (2026-10-17): pen punctuation and ligatures
+- Punctuation drawn with the pen (tools/punct.py): . , : ; ' " ! ? ( ) [ ] { }.
+  Their unit is the drop (gota). The comma is a smaller drop with a long
+  tail. Braces are the carved C-scroll with a pointed middle, parentheses
+  deep bows, brackets long-armed. Each sits on Radon's own centre.
+- Code symbols (- _ / \ * + = < > | @ # & ~ ^) and every ligature glyph
+  re-stroked: the nib is swept along the medial axis of Radon's outline, so
+  Radon's geometry and cross-cell joins stay but the weight is the pen's.
+  Dots inside ligatures become drops; the solid |> triangle stays solid.
+  All are sheared to Jandí's 7° / 13°.
+- Ligatures on by default: Radon's ss01-ss10 moved into liga (== != -> =>
+  <= >= |> :: ... ### and the rest). -liga turns them all off; texture
+  healing (calt) is untouched.
+- Measured against 0.5.0: no confusable pair worse in Regular, Italic or
+  Wide; ,/. :/; (/[ [/{ at or below Radon's at 12 px.
+
 0.5.0 (2026-10-17): spacing
 - Jandi Mono Wide and Wide NF: the same letters in a 1320 cell (extra-large
   letter spacing helped dyslexic readers in Zorzi et al. 2012). Only glyphs
@@ -104,7 +120,16 @@ Acknowledgements
   The icon glyph sets keep their own licences; see the Nerd Fonts repository.
 - Jandí palette and naming: jandi-colors by Francisco Tarcizo Bomfim Júnior.
   https://github.com/franciscotbjr/jandi-colors (MIT)
-- Michelangelus (Microsoft, Studiogusto, Fabbrica di San Pietro): inspiration
-  only, from the design principles its makers published. No outlines,
-  measurements or data from that font are used; its licence forbids it.
+- Letters after Manuel de Andrade de Figueiredo, Nova Escola para aprender a
+  ler, escrever e contar (Lisbon, 1722; public domain; Biblioteca Nacional
+  de Portugal, purl.pt/107), as studied by Márcia Almada (2011, 2012).
+- Ornament (planned, 0.8.0) after the rococó mineiro: Aleijadinho's carving
+  in Ouro Preto and Congonhas, Manuel da Costa Ataíde's ceiling at São
+  Francisco de Assis; see Myriam Andrade Ribeiro de Oliveira, O Rococó
+  religioso no Brasil (2003), and Germain Bazin, O Aleijadinho (1971).
+- Michelangelus (Microsoft, Studiogusto, Fabbrica di San Pietro) prompted
+  the chancery direction of 0.1-0.3, from its makers' published design
+  principles. No outlines, measurements or data from that font are used;
+  its licence forbids it. Since 0.4.0 the base is the Baroque above.
+- Full references, including the reading research: README.md.
 - Jandí Mono letterforms and tools: arnaudmatheus.

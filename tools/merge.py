@@ -34,7 +34,7 @@ STYLES = {
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -141,10 +141,12 @@ def strokes_for(gname):
     return GLYPHS[gname][0]()
 
 # ------------------------------------------------------------- write outlines
-def to_charstring(shape):
-    p = T2CharStringPen(None, None)            # width None == defaultWidthX (the cell)
+def to_charstring(shape, width=None):
+    p = T2CharStringPen(width, None)           # width None == defaultWidthX (the cell)
     shape = shape.simplify(1.5)
-    for g in (shape.geoms if isinstance(shape, MultiPolygon) else [shape]):
+    for g in (shape.geoms if hasattr(shape, 'geoms') else [shape]):
+        if g.geom_type != 'Polygon' or g.is_empty:
+            continue
         g = orient(g, sign=1.0)                # CFF: outer contours counter-clockwise
         for ring in [g.exterior] + list(g.interiors):
             pts = [(round(x), round(y)) for x, y in ring.coords[:-1]]
@@ -152,14 +154,16 @@ def to_charstring(shape):
     return p.getCharString(private=td.Private, globalSubrs=cff.GlobalSubrs)
 
 INK = {}
-def put(name, shape):
+def put(name, shape, advance=None):
+    """advance None = the cell; ligatures and spacers keep Radon's own."""
     cs = td.CharStrings
-    new = to_charstring(shape)
+    adv = pen.ADV if advance is None else advance
+    new = to_charstring(shape, None if adv == CELL else adv)
     if cs.charStringsAreIndexed:
         cs.charStringsIndex[cs.charStrings[name]] = new
     else:
         cs.charStrings[name] = new
-    font['hmtx'][name] = (pen.ADV, int(shape.bounds[0]))
+    font['hmtx'][name] = (adv, int(shape.bounds[0]))
     INK[name] = shape.bounds
 
 def radon_bounds(name):
@@ -205,6 +209,52 @@ for gname, (fn, kind) in GLYPHS.items():
     pen.OPTICAL = 0
     if gname == 'i' and 'i.loclTRK' in td.CharStrings:
         put('i.loclTRK', shape); done.append('i.loclTRK')
+
+# 1b. Punctuation, symbols and ligatures with the pen (roadmap E1, E2; see
+# tools/punct.py). Drawn glyphs sit on Radon's own centre, so code columns
+# don't move; restroked ones keep Radon's geometry and advance exactly.
+import punct
+RADON_ANGLE = 11 if 'Italic' in style else 0
+SHEAR = STYLES[style]['slant'] - RADON_ANGLE
+GS = font['GSUB'].table
+LIGA_IDX = [i for fr in GS.FeatureList.FeatureRecord if fr.FeatureTag == 'liga' for i in fr.Feature.LookupListIndex]
+SS_IDX = [i for fr in GS.FeatureList.FeatureRecord if re.fullmatch(r'ss(0[1-9]|10)', fr.FeatureTag)
+          for i in fr.Feature.LookupListIndex]
+def lookup_outputs(indices):
+    out, seen = set(), set()
+    def walk(i):
+        if i in seen: return
+        seen.add(i); lk = GS.LookupList.Lookup[i]
+        for st in lk.SubTable:
+            if lk.LookupType == 7: st = st.ExtSubTable
+            for v in (getattr(st, 'mapping', None) or {}).values():
+                out.update(v if isinstance(v, (list, tuple)) else [v])
+            for ls in (getattr(st, 'ligatures', None) or {}).values():
+                out.update(l.LigGlyph for l in ls)
+            for rec in (getattr(st, 'SubstLookupRecord', None) or []):
+                walk(rec.LookupListIndex)
+    for i in indices: walk(i)
+    return out
+LIGATURES = lookup_outputs(LIGA_IDX + SS_IDX) - {'emptyAdvanceWidth'} - set(GLYPHS) - set(punct.DRAWN)
+srcgs = font.getGlyphSet()
+RADON_STROKE = punct.stroke_width(srcgs)
+pen_glyphs = []
+for name in punct.DRAWN:
+    if name not in td.CharStrings:
+        continue
+    rx0, _, rx1, _ = radon_bounds(name)
+    shape = punct.drawn_shape(name, W, T)
+    sx0, _, sx1, _ = shape.bounds
+    put(name, affinity.translate(shape, (rx0 + rx1) / 2 - (sx0 + sx1) / 2, 0)); pen_glyphs.append(name)
+for name in font.getGlyphOrder():
+    if name in punct.DRAWN or name in GLYPHS:
+        continue
+    if not (name.split('.')[0] in punct.RESTROKE_BASES or name in LIGATURES):
+        continue
+    src = punct.outline(srcgs, name)
+    if src.is_empty:
+        continue
+    put(name, punct.restroke(src, W, T, SHEAR, RADON_STROKE), font['hmtx'][name][0]); pen_glyphs.append(name)
 
 # 2. texture-healing variants: same skeleton, mapped to Radon's measured extents
 for g in font.getGlyphOrder():
@@ -349,6 +399,14 @@ fea = ("\n".join(lines) + "\nfeature mark {\n" + "\n".join(bases) + "\n} mark;\n
        + "feature mkmk {\n" + "\n".join(mk) + "\n} mkmk;\n")
 addOpenTypeFeaturesFromString(font, fea, tables=['GPOS'])
 
+# Ligatures on by default (roadmap E2, decision 2026-10-16): Radon keeps most
+# of them behind ss01-ss10; they move into liga, so they need no feature flag
+# and -liga still turns every one of them off. Texture healing stays in calt.
+for fr in GS.FeatureList.FeatureRecord:
+    if fr.FeatureTag == 'liga':
+        fr.Feature.LookupListIndex = sorted(set(fr.Feature.LookupListIndex) | set(SS_IDX))
+        fr.Feature.LookupCount = len(fr.Feature.LookupListIndex)
+
 gdef = font['GDEF'].table.GlyphClassDef.classDefs
 for gname in mark_anchor:
     gdef[gname] = 3                      # Radon had these as "component" (4)
@@ -377,4 +435,4 @@ font['OS/2'].fsType = 0
 font['OS/2'].sxHeight = XH_NEW
 font['OS/2'].xAvgCharWidth = CELL
 font.save(out)
-print(f"{out}: replaced {len(done)} glyphs ({len(placed)} base, {len(mark_anchor)} marks)")
+print(f"{out}: replaced {len(done)} glyphs ({len(placed)} base, {len(mark_anchor)} marks), {len(pen_glyphs)} punctuation/symbols/ligatures")
