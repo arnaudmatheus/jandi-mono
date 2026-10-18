@@ -21,7 +21,7 @@ cmap = font.getBestCmap(); icmap = icons.getBestCmap(); igs = icons.getGlyphSet(
 order = font.getGlyphOrder()
 have = set(order)
 
-# Os ícones vêm de uma fonte de célula 1240; seguem a célula desta.
+# The icons come from a 1240-unit cell; they follow this font's cell.
 from fontTools.pens.transformPen import TransformPen
 CELL = td.Private.defaultWidthX
 R = CELL / 1240
@@ -63,8 +63,8 @@ for t in font['cmap'].tables:
         t.cmap = {cp: g for cp, g in full.items() if cp <= 0xFFFF}
 
 name = font['name']
-# Família lida da própria fonte: "Jandi Mono" vira "Jandi Mono NF",
-# "Jandi Mono Wide" vira "Jandi Mono Wide NF".
+# The family is read from the font itself: "Jandi Mono" becomes
+# "Jandi Mono NF", "Jandi Mono Wide" becomes "Jandi Mono Wide NF".
 FAM = name.getDebugName(1)
 PSFAM = cff.fontNames[0].split('-')[0]
 for rec in list(name.names):

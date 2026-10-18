@@ -59,9 +59,9 @@ CAPS = {
     'S': lambda: [path(('M', (890, 1220)), ('C', (840, 1340), (740, CT), (620, CT)), ('C', (450, CT), (340, 1290), (340, 1110)),
                        ('C', (340, 900), (520, 820), (660, 770)), ('C', (830, 710), (920, 600), (920, 420)),
                        ('C', (920, 190), (780, CB), (600, CB)), ('C', (440, CB), (330, 120), (290, 250))), BALL(892, 1215), BALL(290, 255)],
-    # A barra do T ocupa quase a célula inteira, como no Radon: com 300–940 ela
-    # deixava um buraco entre dois T (TT 13.2 px de vão na altura da barra,
-    # contra 7.8 de HH, a 40 px), e "TT" lia como "T T".
+    # The T's bar fills nearly the whole cell, as in Radon: at 300–940 it left
+    # a hole between two T's (TT had a 13.2 px gap at bar height against 7.8
+    # for HH, at 40 px), and "TT" read as "T T".
     'T': lambda: [bar(200, 1040, CT), stem(620, entry=False), foot(620)],
     'U': lambda: [path(*ENTRY(320, CT), ('L', (320, 450)), ('C', (320, 180), (450, CB), (620, CB)),
                        ('C', (790, CB), (920, 180), (920, 450)), ('L', (920, CT)))],
@@ -69,13 +69,13 @@ CAPS = {
     'W': lambda: [path(('M', (250, CT)), ('L', (430, CB - 10)), ('L', (620, 900)), ('L', (810, CB - 10)), ('L', (990, CT)))],
     'X': lambda: [path(('M', (310, CT)), ('L', (930, FB))), path(('M', (930, CT)), ('L', (310, FB)))],
     'Y': lambda: [path(('M', (300, CT)), ('L', (620, 700)), ('L', (940, CT))), path(('M', (620, 700)), ('L', (620, FB)))],
-    # Z mais largo pelo mesmo motivo (ZZ 13.7 px contra 9.8 no Radon).
+    # Z wider for the same reason (ZZ 13.7 px against 9.8 in Radon).
     'Z': lambda: [path(('M', (270, CT)), ('L', (970, CT)), ('L', (270, FB)), ('L', (990, FB)))],
 }
 
 FIGURES = {
     'zero': lambda: [ellipse(620, 720, 290, 662), path(('M', (450, 330)), ('L', (790, 1110)))],
-    'one': lambda: [path(('M', (330, 1110)), ('L', (640, CT)), ('L', (640, FB))), bar(430, 850, FB)],   # B3: bandeira mais longa (1/l)
+    'one': lambda: [path(('M', (330, 1110)), ('L', (640, CT)), ('L', (640, FB))), bar(430, 850, FB)],   # B3: a longer flag (1/l)
     'two': lambda: [path(('M', (340, 1150)), ('C', (380, 1320), (500, CT), (630, CT)), ('C', (800, CT), (900, 1290), (900, 1120)),
                          ('C', (900, 900), (700, 700), (340, FB)), ('L', (930, FB))), BALL(345, 1145)],
     'three': lambda: [path(('M', (350, 1250)), ('C', (420, 1350), (520, CT), (630, CT)), ('C', (790, CT), (880, 1290), (880, 1140)),

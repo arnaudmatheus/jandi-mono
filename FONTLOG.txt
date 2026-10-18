@@ -25,6 +25,32 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+1.0.0-beta.1 (2026-10-18): the 1.0 candidate; the final release follows one
+more reading-test session
+- t/r and t/1 join the measured pairs, so the regression gate guards them.
+  A reader found t and r hard to tell apart (t/r 0.936 at 12 px; Radon
+  0.790). Nineteen redrawn t's were measured; each one that separated t
+  from r pushed it toward 1, f or l (a left-reaching bar: t/1 +0.10 at
+  20 px, "texto" read as "1ex1o"). The beta keeps the 0.8.0 t; the fix is
+  t and r (or t and 1) redrawn together, in a later beta.
+- fontbakery's universal profile passes (0 FAIL, 0 ERROR): the font
+  revision agrees with the name table, Windows clipping metrics are family
+  constants that cover every glyph, a STAT table, the italic caret slope,
+  no legacy Mac name records.
+- A reading-speed self-test page: blind, counterbalanced passages in Jandi
+  Mono, Wide, Text and Radon, with fresh passages every session, a
+  practice passage, pace checks and four-option comprehension questions.
+  So far no font is measurably faster for its reader; Jandi Mono stays the
+  default.
+- Reading-size guidance in the README; a palette-bridge line on the
+  specimen (azulejo cobalt, Ataíde's red, talha gold).
+- Faster builds with byte-identical output (one font: 104 s -> 50 s), and
+  CI in parallel jobs: five builds, the regression gate, and fontbakery QA
+  per family; releases wait for both checks.
+- The README opens with a new image (docs/hero.png, made by tools/hero.sh)
+  in place of the Renaissance-era one. Code comments are all in English, and
+  CLAUDE.md sets the code standard for the refactor that follows the beta.
+
 0.8.0 (2026-10-17): ornament, all opt-in (tools/ornament.py)
 - Florões: the hedera at ❦ ❧ ☙; rocalha leaves, vine leaves and buds at
   U+1F650-1F667, with open scrolled stems.

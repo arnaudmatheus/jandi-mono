@@ -34,9 +34,16 @@ def win_metrics(font):
 
 def version(font, semver):
     """head.fontRevision and the name table's version string agree: 1.0.0
-    is Version 1.000, 0.8.0 is Version 0.800."""
-    major, minor, patch = (int(x) for x in semver.split('.'))
-    rev = f"{major}.{minor * 100 + patch:03d}"
+    is Version 1.000, 0.8.0 is Version 0.800. A pre-release sorts just
+    below its release, so installers replace it with the final one:
+    1.0.0-beta.1 is 0.991, beta.2 0.992, and 1.0.0 itself 1.000."""
+    core, _, pre = semver.partition('-')
+    major, minor, patch = (int(x) for x in core.split('.'))
+    if pre:
+        n = int(pre.rsplit('.', 1)[-1]) if pre[-1].isdigit() else 1
+        rev = f"{major - 1}.{990 + n:03d}" if minor == 0 and patch == 0 else f"{major}.{minor * 100 + patch - 1:03d}"
+    else:
+        rev = f"{major}.{minor * 100 + patch:03d}"
     font['head'].fontRevision = float(rev)
     return rev
 

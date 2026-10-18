@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Constrói as famílias do Jandí Mono (normal, Wide, Text e as NF) a partir do Radon upstream.
+# Builds the Jandí Mono families (normal, Wide, Text and their NF) from upstream Radon.
 #
-# Uso: ./build.sh [python]                      tudo
+# Usage: ./build.sh [python]                    everything
 #      FAMILIES="normal wide" STYLES="Regular Italic" ./build.sh python
-#                                               só uma parte (a CI divide assim)
+#                                               just a part (how CI splits the work)
 # FAMILIES: normal wide text    STYLES: Regular Bold Italic BoldItalic
-# (Text só tem Regular e Italic). JOBS: processos ao mesmo tempo (padrão 4).
+# (Text has only Regular and Italic). JOBS: processes at once (default 4).
 set -euo pipefail
 cd "$(dirname "$0")"
 PY="${1:-python3}"
@@ -15,10 +15,11 @@ STYLES="${STYLES:-Regular Bold Italic BoldItalic}"
 NF_DIR="${NF_DIR:-/usr/share/fonts/OTF}"
 mkdir -p build
 
-# Cada tarefa roda em segundo plano e o status de cada uma é conferido: um
-# merge.py que falha derruba o build (um `wait` sem argumentos sempre dá 0).
-# O limite de JOBS espera sem recolher os processos, para nenhum status se
-# perder. Com tudo em paralelo, a máquina local chegou a ficar sem memória.
+# Every task runs in the background and each one's exit status is checked:
+# a failing merge.py fails the build (a bare `wait` always returns 0, which
+# once hid failures). The JOBS limit waits without reaping processes, so no
+# status is lost. With everything in parallel the local machine ran out of
+# memory.
 pids=()
 throttle() { while (( $(jobs -rp | wc -l) >= JOBS )); do sleep 0.2; done; }
 run() { throttle; "$@" & pids+=("$!"); }
@@ -26,7 +27,7 @@ collect() {
   local failed=0
   for p in "${pids[@]}"; do wait "$p" || failed=1; done
   pids=()
-  (( failed == 0 )) || { echo "build: uma tarefa falhou" >&2; exit 1; }
+  (( failed == 0 )) || { echo "build: a task failed (see the output above)" >&2; exit 1; }
 }
 
 style_name() { case "$1" in BoldItalic) echo "Bold Italic" ;; *) echo "$1" ;; esac; }
@@ -34,9 +35,9 @@ built=()
 for fam in $FAMILIES; do
   case "$fam" in
     normal) prefix=JandiMono;     flag=() ;;
-    wide)   prefix=JandiMonoWide; flag=(--wide) ;;   # célula 1320, o build de acessibilidade
-    text)   prefix=JandiMonoText; flag=(--text) ;;   # pena 8% mais larga: fundos claros, 97 PPI
-    *) echo "família desconhecida: $fam" >&2; exit 2 ;;
+    wide)   prefix=JandiMonoWide; flag=(--wide) ;;   # cell 1320, the accessibility build
+    text)   prefix=JandiMonoText; flag=(--text) ;;   # nib 8% wider: light grounds, 97 PPI
+    *) echo "unknown family: $fam (expected normal, wide or text)" >&2; exit 2 ;;
   esac
   for file in $STYLES; do
     [[ $fam == text && $file != Regular && $file != Italic ]] && continue
@@ -54,22 +55,22 @@ AUTOHINT="$(dirname "$PY")/otfautohint"
 command -v "$AUTOHINT" >/dev/null || AUTOHINT=otfautohint
 if command -v "$AUTOHINT" >/dev/null; then
   for f in "${built[@]}"; do
-    # i l j q 1 (e t f nas itálicas) ficam sem hinting (ver tools/nohint.py).
-    # -p 2: o otfautohint abre um processo por núcleo; com vários arquivos ao
-    # mesmo tempo isso chegou a 30 processos e esgotou a memória.
+    # i l j q 1 (and t f in the italics) stay unhinted (see tools/nohint.py).
+    # -p 2: otfautohint opens one process per core; with several files at
+    # once that reached 30 processes and ran out of memory.
     run "$AUTOHINT" -p 2 -x "$("$PY" tools/nohint.py "$f")" "$f"
   done
   collect
 else
-  echo "sem otfautohint (pip install afdko): fontes sem hinting" >&2
+  echo "otfautohint not found (pip install afdko): building unhinted fonts" >&2
 fi
 
-# Variante NF: os ícones do Nerd Fonts (barra, starship, nvim) dentro da fonte.
-# Vêm do MonaspiceRn Nerd Font do mesmo estilo, já escalado para esta célula.
+# NF variant: the Nerd Fonts icons (bar, starship, nvim) inside the font.
+# They come from MonaspiceRn Nerd Font of the same style, scaled to this cell.
 for f in "${built[@]}"; do
   file="${f##*-}"; file="${file%.otf}"
   src="$NF_DIR/MonaspiceRnNerdFontMono-$file.otf"
-  [[ -f $src ]] || { echo "sem $src: pulando a NF de $f" >&2; continue; }
+  [[ -f $src ]] || { echo "no $src: skipping the NF build of $f" >&2; continue; }
   base="$(basename "$f" .otf)"
   run "$PY" tools/nerd.py "$f" "$src" "build/${base%-*}NF-$file.otf"
 done

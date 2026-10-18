@@ -47,8 +47,8 @@ def ellipse(cx, cy, rx, ry, n=160, start=math.pi / 2):
 
 # ---------------------------------------------------------------- letters
 def strokes_a():
-    # B3: bojo mais estreito, entalhe onde encontra a haste e saída longa —
-    # a 12 px o a da 0.2.0 era quase o (similaridade 0.979).
+    # B3: a narrower bowl, a notch where it meets the stem, and a long exit;
+    # at 12 px the 0.2.0 a was nearly an o (similarity 0.979).
     bowl = path(('M', (880, 760)), ('C', (830, 920), (730, T), (640, T)), ('C', (470, T), (390, 760), (390, 520)),
                 ('C', (390, 240), (470, B), (600, B)), ('C', (720, B), (840, 170), (905, 330)))
     stem = path(('M', (905, T)), ('L', (905, 170)), ('C', (905, 80), (960, 40), (1080, 100)))
@@ -81,8 +81,8 @@ def strokes_y():
     return [left, stem, BALLAT(358, -232)]
 
 def strokes_g():
-    # Inspirado (não copiado) na assinatura de Michelangelo: o descendente faz
-    # uma laçada e fecha num só gesto, cruzando de volta pela haste.
+    # Inspired by (not copied from) Michelangelo's signature: the descender
+    # loops and closes in one gesture, crossing back over the stem.
     bowl = path(('M', (905, 880)), ('C', (840, 955), (720, T), (620, T)), ('C', (420, T), (320, 760), (320, 560)),
                 ('C', (320, 300), (430, 160), (590, 160)), ('C', (730, 160), (850, 260), (905, 400)))
     stem = path(('M', (905, T)), ('L', (905, -120)), ('C', (905, -300), (780, -368), (620, -368)),
@@ -91,8 +91,8 @@ def strokes_g():
     return [bowl, stem]
 
 def strokes_f():
-    # B3: barra larga, gancho de cima maior e gancho de baixo CURTO — o j
-    # fica com o gancho grande; a 12 px os dois eram quase iguais (0.887).
+    # B3: a wide bar, a bigger top hook and a SHORT bottom hook: the j keeps
+    # the big hook; at 12 px the two were nearly identical (0.887).
     hook = path(('M', (1010, 1330)), ('C', (960, 1450), (850, 1482), (750, 1482)), ('C', (620, 1482), (560, 1400), (560, 1250)),
                 ('L', (560, -170)), ('C', (560, -290), (510, -350), (430, -355)))
     ball = BALLAT(1012, 1318)
@@ -106,7 +106,7 @@ def strokes_idot():
     return strokes_dotlessi() + [DOT()]
 
 def strokes_tilde(cx=620, y=1190):
-    # Onda de pena: fina-grossa-fina sai do ângulo da pena, não de desenho.
+    # A pen wave: thin-thick-thin comes from the nib angle, not from drawing.
     return [path(('M', (cx - 270, y)), ('C', (cx - 190, y + 115), (cx - 100, y + 120), (cx, y + 60)),
                  ('C', (cx + 100, y), (cx + 190, y + 5), (cx + 270, y + 115)))]
 
@@ -180,18 +180,19 @@ def strokes_k():
     return [stem, ball, loop, leg]
 
 def strokes_l():
-    # B3: cauda longa que sobe para a direita — nada mais na fonte tem esse
-    # desenho, então l deixa de parecer I, 1 ou i a 12 px.
-    # l mantém a entrada chanceleresca: com o gancho de Figueiredo no topo, l/I
-    # piorava (0.903 → 0.919); a cauda e a entrada são o que o separa do I.
+    # B3: a long tail rising to the right; nothing else in the font has that
+    # shape, so l stops looking like I, 1 or i at 12 px.
+    # l keeps the chancery lead-in: with Figueiredo's hook at the top, l/I got
+    # worse (0.903 → 0.919); the tail and the lead-in are what set it apart
+    # from I.
     return [path(*ENTRY(560, A), ('L', (560, 260)), ('C', (560, 110), (630, 45), (730, 55)),
                  ('C', (810, 65), (860, 120), (885, 190)))]
 
 def strokes_m():
-    # Três hastes na mesma célula. Hastes em 300/600/900 (eram 250/600/950):
-    # mm, mw, ww eram os pares mais apertados da fonte (6.5 px a 40 px contra
-    # 14 de média), e o texture healing não alcança largo-com-largo. Medido:
-    # variação do espaçamento 0.252 -> 0.232, nenhum par pior.
+    # Three stems in one cell, at 300/600/900 (they were 250/600/950): mm, mw,
+    # ww were the tightest pairs in the font (6.5 px at 40 px against a 14
+    # mean), and texture healing can't reach wide-beside-wide. Measured:
+    # spacing variation 0.252 -> 0.232, no pair worse.
     first = path(*ENTRY(300, T), ('L', (300, 40)))
     arch1 = path(('M', (300, 640)), ('C', (345, 890), (405, T), (465, T)), ('C', (562, T), (600, 880), (600, 700)), ('L', (600, 40)))
     arch2 = path(('M', (600, 640)), ('C', (645, 890), (705, T), (765, T)), ('C', (862, T), (900, 880), (900, 700)), *EXIT(900))
@@ -214,18 +215,26 @@ def strokes_s():
                  ('C', (860, 130), (740, B), (590, B)), ('C', (470, B), (370, 100), (310, 190)))]
 
 def strokes_t():
-    # B3: haste curta, saída curta e barra puxada para a direita, como nas
-    # chancelarescas — três silhuetas distintas: f (barra longa simétrica),
-    # l (sem barra, cauda longa), t (barra à direita, cauda curta).
+    # B3: a short stem, a short exit and the bar pulled to the right, as in
+    # the chancery hands; three distinct silhouettes: f (long symmetric bar),
+    # l (no bar, long tail), t (bar to the right, short tail).
+    #
+    # Known weakness (reading test, 2026-10-18): t and r are hard to tell
+    # apart (t/r 0.936 at 12 px; Radon 0.790); both have their weight right
+    # of a short stem. Nineteen redrawn t's were measured (ROADMAP, 1.0):
+    # weight moved left reads as 1 (t/1 +0.10 at 20 px), a centred bar as
+    # f, a longer foot as l, a lowered bar as 1 and l again. At this size no
+    # t alone beats all four; the fix is t and r (or t and 1) redrawn
+    # together. t/r and t/1 are measured pairs, so nothing makes it worse.
     return [path(('M', (560, 1180)), *EXIT(560)), path(('M', (430, T - 10)), ('L', (880, T - 10)))]
 
 def strokes_v():
-    # Vértice agudo na linha de base: com fundo redondo o v virava u a 12 px.
+    # A pointed vertex on the baseline: with a round bottom, v read as u at 12 px.
     return [path(*ENTRY(330, T), ('C', (360, 640), (470, 260), (600, 40)),
                  ('C', (700, 260), (860, 560), (900, 800)), ('C', (910, 880), (890, 940), (850, 975)))]
 
 def strokes_w():
-    # Mais estreito pelo mesmo motivo do m (pares largo-com-largo).
+    # Narrower for the same reason as the m (wide-beside-wide pairs).
     left = path(*ENTRY(300, T), ('L', (300, 400)), ('C', (300, 190), (355, B), (435, B)),
                 ('C', (528, B), (600, 180), (600, 420)), ('L', (600, 760)))
     right = path(('M', (600, 420)), ('C', (600, 190), (672, B), (760, B)), ('C', (865, B), (930, 280), (930, 650)),

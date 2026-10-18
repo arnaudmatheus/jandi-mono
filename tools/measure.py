@@ -26,7 +26,13 @@ from fontTools.ttLib import TTFont
 
 CONFUSABLE = [('e', 'c'), ('a', 'o'), ('n', 'u'), ('s', 'e'), ('c', 'o'), ('i', 'j'), ('i', 'l'), ('l', 't'),
               ('t', 'f'), ('f', 'j'), ('1', 'l'), ('l', 'I'), ('1', 'I'), ('0', 'O'), (',', '.'), (':', ';'),
-              ('(', '['), ('[', '{'), ('r', 'n'), ('h', 'b'), ('g', 'q'), ('v', 'y')]
+              ('(', '['), ('[', '{'), ('r', 'n'), ('h', 'b'), ('g', 'q'), ('v', 'y'),
+              # Added 2026-10-18 from the reading test: the reader found t and r
+              # hard to tell apart in Jandi Mono (0.936 at 12 px, Radon 0.790).
+              ('t', 'r'),
+              # Added the same day: the first redrawn t (crossbar reaching left)
+              # read like the 1's flag in the README image (t/1 +0.10 at 20 px).
+              ('t', '1')]
 SIZES = [12, 15, 20]
 BIGRAMS = sorted(set("""
 de os es ra ar en nt do te co er re as ad ta da or ca ri ma em se an ue qu st to on ia io ac ec al ic in ne no ve el pa ro um

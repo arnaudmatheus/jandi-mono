@@ -35,7 +35,7 @@ STYLES = {
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
-VERSION = "0.8.0"
+VERSION = "1.0.0-beta.1"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -70,20 +70,20 @@ cmap = font.getBestCmap()
 cff = font['CFF '].cff
 td = cff.topDictIndex[0]
 
-# A célula. Radon tem 1240 (0,62 em), larga; com as letras chancelarescas mais
-# estreitas o espaço entre elas sobrava. Encolher a célula na própria fonte
-# aperta tudo de uma vez (terminal, barra, menus). O que continua sendo do
-# Radon (símbolos, box drawing, braille) é escalado em x junto, então linhas
-# de caixa seguem encostando de borda a borda.
+# The cell. Radon's is 1240 (0.62 em), wide; with the narrower chancery
+# letters there was too much space between them. Shrinking the cell in the
+# font itself tightens everything at once (terminal, bar, menus). What stays
+# Radon's (symbols, box drawing, braille) is scaled in x with it, so box
+# lines still meet edge to edge.
 if CELL != 1240:                      # Radon upstream is 1240
     from fontTools.pens.transformPen import TransformPen
     from fontTools.pens.teePen import TeePen
     srcgs = TTFont(src).getGlyphSet()
     r = CELL / 1240
-    # Wide: o desenho é o mesmo, só a célula cresce. O que encosta nas duas
-    # bordas (box drawing, blocos) estica para continuar emendando; o resto
-    # (colchetes, chaves, pontuação) fica com a largura do Jandí Mono e só é
-    # centrado. Esticados, [ e { ficavam mais parecidos ([/{ +0.018 a 12 px).
+    # Wide: the drawing is the same, only the cell grows. What touches both
+    # edges (box drawing, blocks) stretches so it keeps joining; the rest
+    # (brackets, braces, punctuation) keeps Jandí Mono's width and is only
+    # centred. Stretched, [ and { looked more alike ([/{ +0.018 at 12 px).
     r_sym = min(r, 1160 / 1240)
     cs = td.CharStrings
     for g in font.getGlyphOrder():
@@ -427,8 +427,9 @@ for cp, gname in sorted(cmap.items()):
     if base in 'ij' and any(MARKS[ord(m)][0] == 'above' for m in d[1:]):
         base = 'dotlessi' if base == 'i' else 'uni0237'
     put(gname, compose(base, [ord(m) for m in d[1:]])); done.append(gname)
-    # O acento composto também é base: HarfBuzz recompõe u + ¨ em ü antes de
-    # posicionar, e o agudo de ǘ precisa de uma âncora acima do trema.
+    # The precomposed letter is a mark base too: HarfBuzz recomposes u + ¨
+    # into ü before positioning, and the acute of ǘ needs an anchor above the
+    # dieresis.
     n_above = sum(MARKS[ord(m)][0] == 'above' for m in d[1:])
     if n_above:
         composite_base[gname] = base

@@ -41,13 +41,14 @@ def RASGO(x, end=170):
             ('C', (x - 290, D), (x - 340, -330), (x - 330, -280))]
 
 def c_b():
-    # b sem laçada (como na 1ª linha da folha nº 7): o laço fica para h k l, e é
-    # justamente ele que separa o h do b — com os dois laçados, h/b mediam 0.97.
+    # b without a loop (as in the first line of plate nº 7): the loop is kept
+    # for h k l, and it is exactly what tells h from b; with both looped,
+    # h/b measured 0.97.
     return [path(*ENTRY_C(330, pen.A), ('L', (330, 110))), path(('M', (330, 620)), *BOWL_R)]
 
 def c_d():
     bowl = pen.strokes_a()[0]
-    # O d bastardo: a haste sobe e enrola de volta para a esquerda no topo.
+    # The bastarda d: the stem rises and curls back to the left at the top.
     stem = path(('M', (590, 1330)), ('C', (600, 1450), (700, A + 30), (800, A + 30)), ('C', (880, A + 30), (905, 1440), (905, 1340)),
                 *EXIT_C(905))
     return [bowl, stem]
@@ -62,19 +63,19 @@ def c_k():
     return [stem, loop, leg]
 
 def c_l():
-    # Laço só acima da altura-x: cruzando a haste na altura-x, ele punha tinta
-    # onde o t tem a barra (l/t 0.861 → 0.896).
+    # The loop sits above the x-height only: crossing the stem at the
+    # x-height, it put ink where the t has its bar (l/t 0.861 → 0.896).
     loop = [('M', (480, 1190)), ('C', (640, 1260), (940, 1280), (940, 1380)),
             ('C', (940, 1460), (830, A + 25), (720, A + 25)),
             ('C', (610, A + 25), (560, 1450), (560, 1340))]
-    # A cauda é a do romano (longa, até 885): com a saída curta da corsiva, a
-    # base do l ficava igual à do t.
+    # The tail is the roman's (long, to 885): with the corsiva's short exit,
+    # the foot of the l matched the t's.
     return [path(*loop, ('L', (560, 260)), ('C', (560, 110), (630, 45), (730, 55)),
                  ('C', (810, 65), (860, 120), (885, 190)))]
 
 def c_f():
-    # Descendente reto com um corte para a direita: com o rasgo para a esquerda
-    # o f virava j a 12 px (o j fica com o gancho grande).
+    # A straight descender with a cut to the right: with the rasgo sweeping
+    # left, f read as j at 12 px (the j keeps the big hook).
     hook = path(('M', (1000, 1330)), ('C', (950, 1450), (850, 1482), (750, 1482)), ('C', (620, 1482), (560, 1400), (560, 1250)),
                 ('L', (560, -250)), ('C', (560, -320), (590, D), (660, -340)))
     bar = path(('M', (300, T - 10)), ('L', (880, T - 10)))
@@ -85,17 +86,17 @@ def c_p():
 
 def c_n():
     entry = path(*ENTRY_C(330, T), ('L', (330, 40)))
-    # O arco sai alto da haste, como no romano. Saindo de baixo (do jeito que a
-    # mão bastarda escreve o n de um gesto só), fechava o canto inferior
-    # esquerdo e o n virava u: n/u 0.898 → 0.934.
-    # Saída curta do romano: com a saída longa da corsiva o n ficava espelho
-    # do u, que entra reto e sai longo.
+    # The arch leaves the stem high, as in the roman. Leaving from the bottom
+    # (the way the bastarda hand writes n in one gesture) closed the lower
+    # left corner and n read as u: n/u 0.898 → 0.934.
+    # The roman's short exit: with the corsiva's long exit, n mirrored the u,
+    # which enters straight and leaves long.
     arch = path(('M', (330, 760)), ('C', (390, 930), (520, T), (650, T)), ('C', (810, T), (905, 880), (905, 700)),
                 ('L', (905, 170)), ('C', (905, 90), (950, 55), (1030, 95)))
     return [entry, arch]
 
 def c_m():
-    # Hastes em 300/600/900, como o romano (pares largo-com-largo, roadmap F3).
+    # Stems at 300/600/900, as in the roman (wide-beside-wide pairs, roadmap F3).
     first = path(*ENTRY_C(300, T), ('L', (300, 40)))
     arch1 = path(('M', (300, 640)), ('C', (345, 890), (405, T), (465, T)), ('C', (562, T), (600, 880), (600, 700)), ('L', (600, 40)))
     arch2 = path(('M', (600, 640)), ('C', (645, 890), (705, T), (765, T)), ('C', (862, T), (900, 880), (900, 700)),
@@ -103,8 +104,8 @@ def c_m():
     return [first, arch1, arch2]
 
 def c_u():
-    # Sem a entrada longa: n e u com a mesma entrada e a mesma saída viram
-    # espelhos (n/u 0.898 → 0.94). O u entra reto, como na folha nº 7.
+    # No long lead-in: n and u with the same entry and the same exit become
+    # mirrors (n/u 0.898 → 0.94). The u enters straight, as on plate nº 7.
     left = path(('M', (330, T)), ('L', (330, 300)), ('C', (330, 140), (430, B), (560, B)), ('C', (700, B), (830, 150), (905, 320)))
     stem = path(('M', (905, T)), *EXIT_C(905))
     return [left, stem]
@@ -123,13 +124,13 @@ def c_t():
     return [path(('M', (560, 1180)), *EXIT_C(560)), path(('M', (430, T - 10)), ('L', (880, T - 10)))]
 
 def c_c():
-    # Sem gota: na pena de pressão ela quase fechava o c (c/o 0.900 → 0.944).
+    # No drop: with the pressure quill it nearly closed the c (c/o 0.900 → 0.944).
     return [path(('M', (890, 870)), ('C', (830, 960), (740, T), (630, T)), ('C', (430, T), (320, 760), (320, 520)),
                  ('C', (320, 240), (440, B), (620, B)), ('C', (760, B), (860, 130), (935, 240)))]
 
 def c_r():
-    # Braço curto, sem gota, deixando aberto o canto de cima à direita: é ali
-    # que o n tem o ombro. Com o braço longo, r/n piorava.
+    # A short arm, no drop, leaving the top-right corner open: that is where
+    # the n has its shoulder. With the long arm, r/n got worse.
     return [path(*ENTRY_C(330, T), ('L', (330, 40))),
             path(('M', (330, 700)), ('C', (390, 900), (500, T), (620, T)), ('C', (720, T), (790, 950), (815, 905)))]
 

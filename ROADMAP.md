@@ -327,6 +327,40 @@ descent.
 
 ## Next
 
+### Code health (after 1.0.0-beta.1)
+
+`CLAUDE.md` is the repository's code standard from 2026-10-18. The code
+predates it. The refactor below is its own step, kept out of any release.
+Every step must produce **byte-identical fonts**: same glyphs and tables,
+compared against a build of the commit before. The fonts are the product,
+and a refactor must not move them.
+
+1. **English everywhere ✅** (done before the beta): about 65 Portuguese
+   comment lines and the build's messages were translated, meaning and
+   provenance intact.
+2. **pytest.** A test suite run by one command, with named fakes for font
+   files and the renderer. Regression tests for the bugs already found:
+   - the single-corner ring that collapsed in the curve fitter;
+   - Shapely's mitre negative buffer returning empty;
+   - the summation order that moved last digits;
+   - a bare `wait` hiding failed builds;
+   - Windows metrics per font instead of per family.
+3. **Split `merge.py` (579 lines)** by responsibility: the cell rescale,
+   placement and optical centring, texture healing, accented letters, marks
+   and GPOS, features (liga, titl, swsh), names and metadata. `merge.py`
+   stays as the short orchestrator. `pen.py` (362) separates the engine
+   (nib, sweep) from the letter drawings.
+4. **Functions of 4–20 lines, at most two levels of indentation**, with
+   early returns. The long ones are `fit_ring`, `centreline`, `restroke`,
+   `main` in `measure.py`, and the steps in `merge.py`.
+5. **Explicit types** on every function (Shapely geometries, point and
+   stroke aliases).
+6. **Dependencies injected**: pass the pen settings (nib, slant, cell) as a
+   value instead of setting `pen.SLANT`, `pen.NIB` and `pen.ADV` as module
+   globals.
+7. **Formatter**: `black` for Python, checked in CI, together with
+   `pytest`.
+
 ### Build infrastructure
 
 - **Pipeline ✅** (`.github/workflows/build.yml`). Every push and pull
@@ -356,7 +390,7 @@ descent.
   1. Derive Wide from the normal family instead of drawing it twice.
   2. A per-glyph cache, keyed on skeleton, nib, slant and cell.
 
-### 1.0.0: validation and release (in progress)
+### 1.0.0: validation and release (1.0.0-beta.1 released; final after one more reading session)
 
 - **Reading-speed self-test ✅ built**:
   [Jandí Reading Test](https://claude.ai/artifact/XDD6j8zVNS581xVPPGP3Lz).
@@ -390,6 +424,104 @@ descent.
 - **Reading-size guidance ✅** in the README, with a table per screen.
 - **Omarchy ✅**: already the system font (`omarchy font set "Jandi Mono
   NF"`) and Ghostty's.
+
+**Reading test, session 1 (2026-10-18), not used for the decision.** On the
+LG at 16 px, dark theme, read speeds ran from 67 to 656 words a minute.
+Normal silent reading is around 200–350.
+- The two slowest passages were the ones where the user stopped to study the
+  letters, which turned up the two observations below.
+- Speed doubled from the first half of the session to the second, a warm-up.
+
+So the test was revised (v2):
+- a practice passage that isn't counted;
+- reads below 120 or above 500 wpm are left out, with the reason shown;
+- instructions to read for meaning, and a separate box for notes on a font;
+- a winner is named only when the gap between fonts beats the spread within
+  each font.
+
+Averages use only v2 sessions.
+
+**Session 2 (v2, same day), also not used.** The test reused the same
+eight passages, so on the second run the reader knew the texts and the
+answers. Five of the eight passages took 2–10 s (700 to 2,900 wpm), and
+every question was still answered correctly. The pace check left them out,
+which left one counted passage each for three fonts and none for Radon.
+
+So the test was revised again (v3):
+- a pool of 29 passages of about 150 words, and each session takes the nine
+  the reader has seen least, so no text repeats until the pool runs out;
+- four-option questions whose wrong answers come from the passage itself.
+
+Averages use only v3 sessions.
+
+**Session 3 (v3, 2026-10-18), the first valid one.** On the LG at 16 px, in
+the dark theme, counted speeds ran from 190 to 329 wpm, a normal reading
+range:
+
+| Font | wpm | Passages counted |
+|---|---|---|
+| Text | 321 | 1 |
+| Jandi Mono | 299 | 1 |
+| Radon | 296 | 2 |
+| Wide | 231 | 2 |
+
+The reader's own passages varied 22–36% within a font, more than any gap
+between fonts. So far, no font is measurably faster for this reader, and
+Jandi Mono stays the default. One more session on another day would firm
+it up.
+
+After this session the test shuffles which letter each font wears every
+session (v3.1). The A–D mapping had been fixed and was revealed after
+session 1, so the test was no longer blind.
+
+**Reader observations from the test (2026-10-18), to act on later.** Two
+narrow letters side by side leave a visible hole in real words:
+- *antigo*: `t i` in **Jandi Mono Wide**;
+- *Estrada*: `t r` in **Jandi Mono**.
+
+Session 2's notes (written in the test's note box):
+- **Wide**: "too much space between a and l", another narrow letter next to
+  a round one.
+- **Text**: "the t is a little bit harder to differentiate". The heavier nib
+  may close `t` toward `f` or `l`. Check `t/f` and `l/t` on Text with
+  `tools/measure.py`.
+
+Session 3's notes, both in Jandi Mono:
+- *tipiti* "has a different spacing from the rest": nearly all narrow
+  letters, the same cluster as *antigo* and *Estrada*.
+- `t` and `r` are hard to tell apart. Measured (similarity, 12 / 15 / 20 px):
+
+  | Font | `t/r` |
+  |---|---|
+  | Jandi Mono | 0.936 / 0.911 / 0.901 |
+  | Jandi Mono Text | 0.937 / 0.904 / 0.892 |
+  | Monaspace Radon | 0.790 / 0.721 / 0.647 |
+
+  That makes `t/r` one of the most confusable pairs in the font, worse than
+  `r/n`. It was never on the harness's list, so the gate couldn't see it.
+  `t/f` and `l/t` are also weaker than Radon's, so the short `t` with its
+  right-reaching bar is the common factor.
+
+  **Outcome (1.0.0-beta.1 keeps the 0.8.0 `t`).** `t/r`, then `t/1`, became
+  measured pairs. Nineteen redrawn `t`s were measured in Regular and Bold,
+  hinted, against 0.8.0:
+  - weight moved left (stem right, bar reaching back) separated `t` from
+    `r` (0.936 → 0.874) but read as `1`. `t/1` got +0.10 at 20 px, and the
+    README hero showed *texto* as "1ex1o";
+  - a centred bar read as `f`, a longer foot as `l`;
+  - a lowered right bar helped `t/r` a little but cost `t/1` and `l/t` at
+    20 px.
+
+  The `t` is boxed in by `r`, `1`, `f` and `l`: at this size no `t` alone
+  beats all four. **Next:** redraw `t` together with `r` (or with `1`),
+  measured on all five pairs.
+
+It shows in both cells, so it's in the shared letters, not one family's
+width. It is the same weakness the measurements found in F3/D2 (`ti ri li`
+are the loosest pairs, which texture healing can't reach). The likely fix
+is in how `t i r` sit in the cell: their side-bearings, or a measured
+narrow-beside-narrow kerning of the healing classes. It must be checked
+against the three-letter contexts. Not changed yet, at the user's request.
 
 After 1.0: draw the African-language capitals Radon lacks (`Ɓ Ɗ Ɛ Ɔ Ƈ Ƙ`…),
 so `case_mapping` can be checked too.

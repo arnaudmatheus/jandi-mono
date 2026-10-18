@@ -6,7 +6,7 @@ Andrade de Figueiredo (*Nova Escola*, 1722); its ornament from the *rococó
 mineiro* of Aleijadinho and Manuel da Costa Ataíde. Made for the
 [Jandí theme for Omarchy](https://github.com/arnaudmatheus/omarchy-jandi-theme).
 
-![Jandí Mono specimen](docs/specimen.png)
+![Jandí Mono: the name, a terminal with code in the Regular and the corsiva comments, and Figueiredo's plate nº 7 beside the Italic](docs/hero.png)
 
 ## The inspiration: Barroco e Rococó
 
@@ -150,6 +150,10 @@ features:
   `font.features: { "titl": 1 }`; in CSS, `font-feature-settings: "swsh"`.
   The flourishes overhang their cell, so keep them for headings.
 
+## Specimen
+
+![Jandí Mono specimen](docs/specimen.png)
+
 ## Families
 
 | Family | Use |
@@ -183,6 +187,7 @@ pip install -r requirements.txt
 ./build.sh            # or: ./build.sh /path/to/python
 JOBS=2 ./build.sh     # fewer processes at once on a machine with little memory
 ./tools/specimen.sh   # regenerates docs/specimen.png from build/
+./tools/hero.sh       # regenerates docs/hero.png from build/
 ```
 
 Hinting needs AFDKO's `otfautohint` (in `requirements.txt`); without it the
