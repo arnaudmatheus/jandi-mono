@@ -37,9 +37,10 @@ Two rules come before everything below:
 
 ## Tests
 
-- Tests run with a single command: `pytest` (being set up, ROADMAP "Code
-  health"). The font-level checks stay separate: `tools/check.py` (the
-  legibility regression gate) and fontbakery (CI `qa` job).
+- Tests run with a single command: `pytest`. The font-level checks stay
+  separate: `tools/check.py` (the legibility regression gate) and
+  fontbakery (CI `qa` job). A refactor is checked with
+  `tools/identical.py` against a build of the commit before.
 - Every new function gets a test. Bug fixes get a regression test.
 - Mock external I/O (API, DB, filesystem) with named fake classes,
   not inline stubs.

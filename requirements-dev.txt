@@ -1,0 +1,5 @@
+# Code checks (CI test job, and locally before a commit): the formatter and
+# the test suite, pinned like fontbakery so a new release never fails a
+# build that passed yesterday.
+black==26.10.1
+pytest==9.1.1

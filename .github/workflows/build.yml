@@ -8,8 +8,10 @@
 #   fonts and the report are kept as the run's artifact.
 # - qa: fontbakery's universal profile on every family (OpenType conformance,
 #   names, metrics, Unicode), in parallel with check.
+# - test: black --check and pytest on the build code (CLAUDE.md), in
+#   parallel with the builds.
 # - release: a tag v<version> publishes a GitHub Release with the fonts
-#   zipped, once check and qa pass and the tag matches VERSION in
+#   zipped, once test, check and qa pass and the tag matches VERSION in
 #   tools/merge.py.
 name: Build and check
 
@@ -32,6 +34,26 @@ env:
   NF_SHA256: 7cdb44b7cd3855a231641b3cc4cf38f434d615d12e1c475eb86232868c667dc0
 
 jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Python packages
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Formatting
+        run: black --check tools tests
+
+      - name: Tests
+        run: pytest
+
   build:
     name: build (${{ matrix.name }})
     runs-on: ubuntu-24.04
@@ -185,7 +207,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [check, qa]
+    needs: [test, check, qa]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

@@ -1,0 +1,8 @@
+# Tool settings only: the font's version lives in tools/merge.py (VERSION).
+
+[tool.black]
+# The default line length; nothing else is configured (CLAUDE.md, Formatting).
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tools"]

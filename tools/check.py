@@ -12,6 +12,7 @@ reported and skipped.
 
 The report is Markdown: written to --report, and to GitHub's job summary
 when $GITHUB_STEP_SUMMARY is set."""
+
 import argparse, json, os, subprocess, sys, tempfile
 from pathlib import Path
 
@@ -26,8 +27,10 @@ FAMILIES = [
     ("Jandi Mono Text", "JandiMonoText-Regular.otf", "JandiMonoText-Italic.otf"),
 ]
 
+
 def mean(d):
     return sum(d.values()) / len(d)
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -42,38 +45,60 @@ def main():
         new_r, base_r = a.new / roman, a.base / roman
         if not new_r.exists():
             continue
+
         def spec(d):
             s = str(d / roman)
             if italic and (d / italic).exists():
                 s += ":" + str(d / italic)
             return s
+
         if not base_r.exists():
-            pairs.append((label, None, None)); continue
+            pairs.append((label, None, None))
+            continue
         i = len(pairs)
-        specs += ["--font", f"base{i}={spec(a.base)}", "--font", f"new{i}={spec(a.new)}"]
+        specs += [
+            "--font",
+            f"base{i}={spec(a.base)}",
+            "--font",
+            f"new{i}={spec(a.new)}",
+        ]
         pairs.append((label, f"base{i}", f"new{i}"))
 
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "m"
-        subprocess.run([sys.executable, str(HERE / "measure.py"), *specs, "--out", str(out)],
-                       check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(
+            [sys.executable, str(HERE / "measure.py"), *specs, "--out", str(out)],
+            check=True,
+            stdout=subprocess.DEVNULL,
+        )
         res = json.loads(out.with_suffix(".json").read_text())
 
-    lines = ["# Jandí Mono: regression check", "",
-             f"Each family against its baseline. Fails if a confusable pair is more than "
-             f"{a.tolerance} worse (similarity; lower is easier to tell apart).", "",
-             "| Family | Confusability 12 / 15 / 20 px | Spacing CV | Sharpness 12 px | Pairs worse |",
-             "|---|---|---|---|---|"]
+    lines = [
+        "# Jandí Mono: regression check",
+        "",
+        f"Each family against its baseline. Fails if a confusable pair is more than "
+        f"{a.tolerance} worse (similarity; lower is easier to tell apart).",
+        "",
+        "| Family | Confusability 12 / 15 / 20 px | Spacing CV | Sharpness 12 px | Pairs worse |",
+        "|---|---|---|---|---|",
+    ]
     failed = []
     for label, b, n in pairs:
         if b is None:
-            lines.append(f"| {label} | no baseline (new family) | | | skipped |"); continue
+            lines.append(f"| {label} | no baseline (new family) | | | skipped |")
+            continue
         rb, rn = res[b], res[n]
-        worse = [(px, p, rn["confusability"][px][p] - rb["confusability"][px][p])
-                 for px in rb["confusability"] for p in rb["confusability"][px]
-                 if rn["confusability"][px][p] - rb["confusability"][px][p] > a.tolerance + 1e-9]
-        conf = " / ".join(f"{mean(rb['confusability'][px]):.3f} → {mean(rn['confusability'][px]):.3f}"
-                          for px in ("12", "15", "20"))
+        worse = [
+            (px, p, rn["confusability"][px][p] - rb["confusability"][px][p])
+            for px in rb["confusability"]
+            for p in rb["confusability"][px]
+            if rn["confusability"][px][p] - rb["confusability"][px][p]
+            > a.tolerance + 1e-9
+        ]
+        conf = " / ".join(
+            f"{mean(rb['confusability'][px]):.3f} → {mean(rn['confusability'][px]):.3f}"
+            for px in ("12", "15", "20")
+        )
         cv = f"{rb['spacing']['cv']} → {rn['spacing']['cv']}"
         sh = f"{rb['sharpness']['hintslight']} → {rn['sharpness']['hintslight']}"
         top = sorted(worse, key=lambda w: -w[2])
@@ -82,7 +107,11 @@ def main():
             cell += f", and {len(top) - 8} more"
         lines.append(f"| {label} | {conf} | {cv} | {sh} | {cell} |")
         failed += [(label, *w) for w in worse]
-    lines += ["", "**Result: " + ("FAIL**, " + f"{len(failed)} pair(s) worse." if failed else "pass.**")]
+    lines += [
+        "",
+        "**Result: "
+        + ("FAIL**, " + f"{len(failed)} pair(s) worse." if failed else "pass.**"),
+    ]
     report = "\n".join(lines) + "\n"
     a.report.write_text(report)
     if os.environ.get("GITHUB_STEP_SUMMARY"):
@@ -90,6 +119,7 @@ def main():
             f.write(report)
     print(report)
     sys.exit(1 if failed else 0)
+
 
 if __name__ == "__main__":
     main()

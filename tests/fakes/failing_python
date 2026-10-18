@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# A stand-in for the Python interpreter that fails every task it is given:
+# build.sh must notice and fail too, instead of carrying on.
+echo "fake python: failing $*" >&2
+exit 1

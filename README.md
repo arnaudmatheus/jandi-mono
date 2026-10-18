@@ -193,11 +193,21 @@ JOBS=2 ./build.sh     # fewer processes at once on a machine with little memory
 Hinting needs AFDKO's `otfautohint` (in `requirements.txt`); without it the
 fonts build unhinted.
 
+Working on the code: `CLAUDE.md` is the standard it follows.
+
+```sh
+pip install -r requirements-dev.txt
+pytest                                     # the build code's tests (a second or two)
+black tools tests                          # the formatter
+python tools/identical.py before/ after/   # did a refactor move any glyph?
+```
+
 ### Continuous integration
 
 Every push and pull request is built on GitHub Actions
 (`.github/workflows/build.yml`), in five parallel jobs of two fonts each,
-and checked two ways in parallel. `tools/check.py` is the legibility gate,
+while black and pytest check the code, and the fonts are then checked two
+ways in parallel. `tools/check.py` is the legibility gate,
 and fontbakery's universal profile (pinned in `requirements-qa.txt`) checks
 OpenType conformance, names and metrics. The job
 fails if any easily confused pair got more than 0.01 worse than the fonts
@@ -210,13 +220,15 @@ the fonts zipped and that version's FONTLOG notes.
 python tools/check.py --base fonts/otf --new build   # the same gate, locally
 ```
 
-`tools/pen.py` holds the pen engine and the lowercase skeletons,
+`tools/pen.py` holds the pen engine, `tools/letters.py` the lowercase skeletons,
 `tools/corsiva.py` the Italic's letters after Figueiredo's plate nº 7,
 `tools/punct.py` the punctuation and the re-stroked symbols and ligatures,
 `tools/fitcurves.py` the curve fitting,
 `tools/caps.py` the capitals, figures and extra letters, `tools/marks.py` the
 diacritics. `tools/merge.py` writes them into the upstream Radon fonts in
-`sources/upstream/`; `tools/nerd.py` adds the icons from an installed
+`sources/upstream/`, one step per module in the order it lists (the cell,
+letters, symbols, ornament, texture healing, accents, mark positioning,
+hinting zones, names); `tools/nerd.py` adds the icons from an installed
 MonaspiceRn Nerd Font (set `NF_DIR` if it isn't in `/usr/share/fonts/OTF`).
 `SPEC.md` records the design decisions, `ROADMAP.md` what comes next, and
 `tools/measure.py` the numbers each change has to improve.

@@ -338,28 +338,43 @@ and a refactor must not move them.
 1. **English everywhere ✅** (done before the beta): about 65 Portuguese
    comment lines and the build's messages were translated, meaning and
    provenance intact.
-2. **pytest.** A test suite run by one command, with named fakes for font
-   files and the renderer. Regression tests for the bugs already found:
-   - the single-corner ring that collapsed in the curve fitter;
-   - Shapely's mitre negative buffer returning empty;
-   - the summation order that moved last digits;
+2. **pytest ✅** 53 tests, under two seconds (`pytest`), on tiny fonts built
+   in memory and one named fake (`tests/fakes/failing_python`). Regression
+   tests for the bugs already found:
+   - the single-corner ring that filled counters in the curve fitter, and
+     long edges that bulged;
+   - diagonals vanishing in the restroke (the mitred negative buffer), and
+     overlapping contours read even-odd;
+   - the summation order that moved last digits: the vectorised sweep and
+     the inlined fitter are checked bit for bit against the code they
+     replaced;
    - a bare `wait` hiding failed builds;
    - Windows metrics per font instead of per family.
-3. **Split `merge.py` (579 lines)** by responsibility: the cell rescale,
-   placement and optical centring, texture healing, accented letters, marks
-   and GPOS, features (liga, titl, swsh), names and metadata. `merge.py`
-   stays as the short orchestrator. `pen.py` (362) separates the engine
-   (nib, sweep) from the letter drawings.
+3. **Split `merge.py` ✅** The 579-line script is now a 90-line
+   orchestrator and one module per step: `cell`, `place_letters`,
+   `place_symbols`, `place_ornaments`, `healing`, `accents`,
+   `mark_positioning`, `zones`, `naming`, with `build_options`,
+   `build_state`, `glyph_table`, `glyph_writer`, `gsub_features` and
+   `anchors` under them. `pen.py` is the engine (122 lines); the lowercase
+   moved to `letters.py`. Dead code from the proofs went with it: the
+   pointed-quill sweep, `glyph_shape`, `skeleton`, the tilde composites.
+   `tools/identical.py` checked every step: all ten fonts byte-identical.
 4. **Functions of 4–20 lines, at most two levels of indentation**, with
-   early returns. The long ones are `fit_ring`, `centreline`, `restroke`,
-   `main` in `measure.py`, and the steps in `merge.py`.
-5. **Explicit types** on every function (Shapely geometries, point and
-   stroke aliases).
+   early returns. Done for the new modules. Left: `fit_ring`, `_generate`
+   and `_fit` (fitcurves), `centreline` and `restroke` (punct), `main` and
+   `write_md` (measure), `main` (check), `ornament.flourish`, and the
+   top-level scripts `nerd.py` and `nohint.py`.
+5. **Explicit types** on every function: done for the new modules
+   (`pen_types.py`: Point, Stroke, StrokesFn, Bounds, GlyphSet). Left: the
+   drawing modules (letters, corsiva, caps, ornament, punct, marks), pen,
+   fitcurves, finish, measure, check.
 6. **Dependencies injected**: pass the pen settings (nib, slant, cell) as a
-   value instead of setting `pen.SLANT`, `pen.NIB` and `pen.ADV` as module
-   globals.
-7. **Formatter**: `black` for Python, checked in CI, together with
-   `pytest`.
+   value instead of setting `pen.SLANT`, `pen.ADV` and `pen.OPTICAL` as
+   module globals, and stop merging the corsiva into `letters.LETTERS` in
+   place.
+7. **Formatter and CI ✅** `black` over tools and tests; a `test` job runs
+   `black --check` and `pytest` beside the builds, and releases wait for it
+   (`requirements-dev.txt`, pinned).
 
 ### Build infrastructure
 
