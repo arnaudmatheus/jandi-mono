@@ -51,3 +51,25 @@ def test_clockwise_contour_is_a_counter():
     hole = list(reversed(square(200, 200, 200)))
     shape = punct.outline(tiny_font({"o": [outer, hole]}).getGlyphSet(), "o")
     assert abs(shape.area - (600 * 600 - 200 * 200)) < 1.0
+
+
+def test_centreline_fallback_for_a_shape_smaller_than_clearance() -> None:
+    tiny = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
+    assert punct.centreline(tiny, 100) == [[(0.5, 0.5), (1.5, 1.5)]]
+
+
+def test_junctions_stay_connected_while_loose_ends_extend() -> None:
+    cross = shapely.union_all(
+        [shapely.box(0, 400, 1000, 500), shapely.box(450, 0, 550, 900)]
+    )
+    lines = punct.centreline(cross, 100)
+    endpoints = [point for line in lines for point in (line[0], line[-1])]
+    assert any(endpoints.count(point) > 1 for point in endpoints)
+    assert min(x for x, _ in endpoints) < 40
+    assert max(x for x, _ in endpoints) > 960
+    assert all(cross.covers(shapely.LineString(line)) for line in lines)
+
+
+def test_empty_restroke_is_still_empty() -> None:
+    empty = Polygon()
+    assert punct.restroke(empty, 138, 106, 7, 100).is_empty

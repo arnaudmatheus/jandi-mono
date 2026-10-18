@@ -149,3 +149,15 @@ def test_inlined_generate_is_bit_identical():
             continue  # the degenerate fallback, not the arithmetic under test
         assert c1 == (pts[0][0] + t1[0] * al, pts[0][1] + t1[1] * al)
         assert c2 == (pts[-1][0] + t2[0] * ar, pts[-1][1] + t2[1] * ar)
+
+
+def test_degenerate_least_squares_keeps_straight_segment() -> None:
+    points = [(0, 0), (30, 0), (60, 0), (90, 0)]
+    curve = fitcurves._generate(points, [0, 0, 1, 1], (1, 0), (-1, 0))
+    assert curve == ((0, 0), (30.0, 0.0), (60.0, 0.0), (90, 0))
+    assert fitcurves._fit([points[0], points[-1]], (1, 0), (-1, 0), 2.5) == [curve]
+
+
+def test_short_ring_keeps_all_its_points() -> None:
+    assert fitcurves.fit_ring([(5, 9)]) == ((5, 9), [])
+    assert fitcurves.fit_ring([(5, 9), (10, 12)]) == ((5, 9), [("L", (10, 12))])

@@ -5,6 +5,8 @@ the glyph bounds."""
 
 import math
 from fontTools.pens.boundsPen import BoundsPen
+from fontTools.ttLib import TTFont
+from fontTools.otlLib.builder import buildStatTable
 
 # Windows clipping metrics, the same for every family and style:
 # fontbakery wants them equal across a family and covering its tallest and
@@ -61,31 +63,32 @@ def caret(font, slant_deg):
         font["hhea"].caretSlopeRun = round(2000 * math.tan(math.radians(slant_deg)))
 
 
-def stat(font, weight, italic, weight_name):
-    """A STAT table: the weight and italic axes, so applications group the
-    styles of a family correctly."""
-    from fontTools.otlLib.builder import buildStatTable
-
+def _weight_axis(weight: int, weight_name: str) -> dict[str, object]:
     # A static font names only its own position on each axis.
     own = dict(
         value=weight,
         name=weight_name,
         **({"flags": 0x2, "linkedValue": 700} if weight == 400 else {}),
     )
-    axes = [
-        dict(tag="wght", name="Weight", values=[own]),
-        # Each static font names only its own italic value: Roman (elidable,
-        # linked to Italic) or Italic.
-        dict(
-            tag="ital",
-            name="Italic",
-            values=(
-                [dict(value=1, name="Italic")]
-                if italic
-                else [dict(value=0, name="Roman", flags=0x2, linkedValue=1)]
-            ),
-        ),
-    ]
+    return dict(tag="wght", name="Weight", values=[own])
+
+
+def _italic_axis(italic: bool) -> dict[str, object]:
+    # Roman is elidable and linked to Italic; each font names its own value.
+    own = (
+        dict(value=1, name="Italic")
+        if italic
+        else dict(value=0, name="Roman", flags=0x2, linkedValue=1)
+    )
+    return dict(tag="ital", name="Italic", values=[own])
+
+
+def stat(font: TTFont, weight: int, italic: bool, weight_name: str) -> None:
+    """Group static family styles by weight and italic in a STAT table.
+
+    Example: ``stat(font, 400, False, "Regular")``.
+    """
+    axes = [_weight_axis(weight, weight_name), _italic_axis(italic)]
     buildStatTable(font, axes, elidedFallbackName=2)
 
 

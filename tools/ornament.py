@@ -18,6 +18,8 @@ skeleton before the nib sweeps it, so the 35° contrast never flips. The
 ornaments stay upright: they are drawn, not written."""
 
 import math
+from shapely.geometry.base import BaseGeometry
+from pen_types import Stroke
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 import pen
@@ -313,25 +315,16 @@ def carved(strokes, w, t):
     return outer.difference(groove)
 
 
-def flourish(shape):
-    """swsh: Figueiredo's rasgo grows out of the capital. A volute curls over
-    its head on the left, and a long swash runs under the baseline from left
-    to right, turning up at the end, as on his flourished capitals."""
-    minx, miny, maxx, maxy = shape.bounds
-    head = [
-        fine(
-            path(
-                ("M", (minx + 160, maxy - 10)),
-                (
-                    "C",
-                    (minx + 100, maxy + 60),
-                    (minx, maxy + 80),
-                    (minx - 90, maxy + 40),
-                ),
-            )
-        )
-    ] + volute(minx - 90, maxy - 140, 180, 90, cw=False)
-    tail = path(
+def _flourish_head(minx: float, maxy: float) -> list[tuple[Stroke, float]]:
+    entry = path(
+        ("M", (minx + 160, maxy - 10)),
+        ("C", (minx + 100, maxy + 60), (minx, maxy + 80), (minx - 90, maxy + 40)),
+    )
+    return [fine(entry)] + volute(minx - 90, maxy - 140, 180, 90, cw=False)
+
+
+def _flourish_tail(minx: float, miny: float, maxx: float) -> Stroke:
+    return path(
         ("M", (minx - 60, miny + 160)),
         (
             "C",
@@ -346,4 +339,13 @@ def flourish(shape):
             (maxx + 90, miny + 60),
         ),
     )
-    return head + [fine(tail)]
+
+
+def flourish(shape: BaseGeometry) -> list[tuple[Stroke, float]]:
+    """swsh: Figueiredo's rasgo grows out of the capital, curling over its head
+    on the left and running below the baseline before turning up on the right.
+
+    Example: ``strokes = flourish(capital_ink)``.
+    """
+    minx, miny, maxx, maxy = shape.bounds
+    return _flourish_head(minx, maxy) + [fine(_flourish_tail(minx, miny, maxx))]

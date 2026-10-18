@@ -18,6 +18,8 @@ weigh down the file. This turns each ring back into curves:
 
 import math
 
+from pen_types import Point, Stroke, Cubic, Segment
+
 CORNER = 32  # degrees: a sharper turn is a corner of the nib
 ERROR = 2.5  # font units (2000 per em): far below a pixel at any size
 
@@ -77,40 +79,45 @@ def _chord_params(pts):
     return [x / total for x in u]
 
 
-# The three hot functions below are the helpers above (_bez, _bez_d1, _bez_d2,
-# _dot, _mul, _add, _sub) written out inline, operation for operation in the
+# The hot curve arithmetic below expands the helpers above (_bez, _bez_d1,
+# _bez_d2, _dot, _mul, _add, _sub), operation for operation in the
 # same order, so the floats come out bit-identical (the fonts don't change)
 # while the 5 million helper calls per font disappear. A NumPy version was
 # tried and was faster, but summed in another order: the last digits moved,
 # a few round letters split differently, and after hinting O read closer to
 # 0 at 12 px (0/O +0.046). So the arithmetic stays exactly as it was.
-def _generate(pts, u, t1, t2):
-    """Least-squares cubic through pts with end tangents t1, t2."""
-    p0, p3 = pts[0], pts[-1]
-    p0x, p0y = p0
-    p3x, p3y = p3
-    t1x, t1y = t1
-    t2x, t2y = t2
-    c00 = c01 = c11 = 0.0
-    x0 = x1 = 0.0
-    for (px, py), t in zip(pts, u):
+def _projection(p0: Point, p3: Point, point: Point, t: float) -> Point:
+    w = 1 - t
+    b0, b1, b2, b3 = w**3, 3 * w * w * t, 3 * w * t * t, t**3
+    bx = (p0[0] * b0 + p0[0] * b1) + (p3[0] * b2 + p3[0] * b3)
+    by = (p0[1] * b0 + p0[1] * b1) + (p3[1] * b2 + p3[1] * b3)
+    return point[0] - bx, point[1] - by
+
+
+def _normal_equations(
+    pts: Stroke, u: list[float], t1: Point, t2: Point
+) -> tuple[float, float, float, float, float]:
+    c00 = c01 = c11 = x0 = x1 = 0.0
+    for point, t in zip(pts, u):
         s1 = 3 * (1 - t) ** 2 * t
         s2 = 3 * (1 - t) * t * t
-        a1x, a1y = t1x * s1, t1y * s1
-        a2x, a2y = t2x * s2, t2y * s2
+        a1x, a1y = t1[0] * s1, t1[1] * s1
+        a2x, a2y = t2[0] * s2, t2[1] * s2
         c00 += a1x * a1x + a1y * a1y
         c01 += a1x * a2x + a1y * a2y
         c11 += a2x * a2x + a2y * a2y
-        w = 1 - t
-        b0, b1, b2, b3 = w**3, 3 * w * w * t, 3 * w * t * t, t**3
-        bx = (p0x * b0 + p0x * b1) + (p3x * b2 + p3x * b3)
-        by = (p0y * b0 + p0y * b1) + (p3y * b2 + p3y * b3)
-        tx, ty = px - bx, py - by
+        tx, ty = _projection(pts[0], pts[-1], point, t)
         x0 += a1x * tx + a1y * ty
         x1 += a2x * tx + a2y * ty
+    return c00, c01, c11, x0, x1
+
+
+def _control_distances(
+    equations: tuple[float, float, float, float, float], seg: float
+) -> tuple[float, float]:
+    c00, c01, c11, x0, x1 = equations
     c10 = c01
     det = c00 * c11 - c01 * c10
-    seg = math.dist(p0, p3)
     if abs(det) > 1e-12:
         al = (x0 * c11 - x1 * c01) / det
         ar = (c00 * x1 - c10 * x0) / det
@@ -119,7 +126,19 @@ def _generate(pts, u, t1, t2):
     eps = 1e-6 * seg
     if al < eps or ar < eps:  # degenerate: Wu/Barsky heuristic
         al = ar = seg / 3
-    return (p0, (p0x + t1x * al, p0y + t1y * al), (p3x + t2x * ar, p3y + t2y * ar), p3)
+    return al, ar
+
+
+def _generate(pts: Stroke, u: list[float], t1: Point, t2: Point) -> Cubic:
+    """Least-squares cubic through pts with end tangents t1, t2."""
+    p0, p3 = pts[0], pts[-1]
+    al, ar = _control_distances(_normal_equations(pts, u, t1, t2), math.dist(p0, p3))
+    return (
+        p0,
+        (p0[0] + t1[0] * al, p0[1] + t1[1] * al),
+        (p3[0] + t2[0] * ar, p3[1] + t2[1] * ar),
+        p3,
+    )
 
 
 def _max_error(pts, ctrl, u):
@@ -160,23 +179,28 @@ def _reparam(pts, ctrl, u):
     return out
 
 
-def _fit(pts, t1, t2, err, depth=0):
+def _refine_fit(
+    pts: Stroke, u: list[float], t1: Point, t2: Point, err: float
+) -> tuple[Cubic, float, int]:
+    ctrl = _generate(pts, u, t1, t2)
+    e, split = _max_error(pts, ctrl, u)
+    if e < err or not e < err * 4:
+        return ctrl, e, split
+    for _ in range(6):
+        u = _reparam(pts, ctrl, u)
+        ctrl = _generate(pts, u, t1, t2)
+        e, split = _max_error(pts, ctrl, u)
+        if e < err:
+            break
+    return ctrl, e, split
+
+
+def _fit(pts: Stroke, t1: Point, t2: Point, err: float, depth: int = 0) -> list[Cubic]:
     if len(pts) == 2:
         d = math.dist(pts[0], pts[1]) / 3
         return [(pts[0], _add(pts[0], _mul(t1, d)), _add(pts[1], _mul(t2, d)), pts[1])]
-    u = _chord_params(pts)
-    ctrl = _generate(pts, u, t1, t2)
-    e, split = _max_error(pts, ctrl, u)
-    if e < err:
-        return [ctrl]
-    if e < err * 4:
-        for _ in range(6):
-            u = _reparam(pts, ctrl, u)
-            ctrl = _generate(pts, u, t1, t2)
-            e, split = _max_error(pts, ctrl, u)
-            if e < err:
-                return [ctrl]
-    if depth > 12:
+    ctrl, e, split = _refine_fit(pts, _chord_params(pts), t1, t2, err)
+    if e < err or depth > 12:
         return [ctrl]
     split = min(max(split, 1), len(pts) - 2)
     tc = _norm(_sub(pts[split - 1], pts[split + 1]))
@@ -218,13 +242,8 @@ def _densify(run, step=12.0):
     return out
 
 
-def fit_ring(ring, err=ERROR, corner=CORNER):
-    """ring: closed list of (x, y) without the repeated last point.
-    Returns segments: ('L', p1) or ('C', c1, c2, p3); the first point is ring[k]
-    returned separately as the start."""
+def _ring_corners(ring: Stroke, corner: float) -> list[int]:
     n = len(ring)
-    if n < 3:
-        return ring[0], [("L", p) for p in ring[1:]]
     turns = [_turn(ring[i - 1], ring[i], ring[(i + 1) % n]) for i in range(n)]
     corners = {i for i in range(n) if turns[i] > corner}
     # A corner the polygon split across two close vertices (two 30° turns
@@ -240,32 +259,56 @@ def fit_ring(ring, err=ERROR, corner=CORNER):
             and j not in corners
         ):
             corners.add(i if turns[i] >= turns[j] else j)
-    corners = sorted(corners)
-    smooth = set()
+    return sorted(corners)
+
+
+def _ring_splits(ring: Stroke, corner: float) -> tuple[list[int], set[int]]:
+    corners = _ring_corners(ring, corner)
     if not corners:  # a smooth closed loop: split at two far points
-        corners = [0, n // 2]
-        smooth = {0, n // 2}
-    elif len(corners) == 1:  # one corner: add a smooth split opposite it, or
-        k = (corners[0] + n // 2) % n  # the run would start and end on the same point
-        corners = sorted([corners[0], k])
-        smooth = {k}
+        return [0, len(ring) // 2], {0, len(ring) // 2}
+    if len(corners) == 1:  # one corner: add a smooth split opposite it, or
+        k = (corners[0] + len(ring) // 2) % len(ring)  # the run would close on itself
+        return sorted([corners[0], k]), {k}
+    return corners, set()
 
-    def centred(k):  # tangent through a smooth split point
-        return _norm(_sub(ring[(k + 1) % n], ring[k - 1]))
 
-    start = ring[corners[0]]
+def _centred_tangent(ring: Stroke, k: int) -> Point:
+    # Tangent through a smooth split point.
+    return _norm(_sub(ring[(k + 1) % len(ring)], ring[k - 1]))
+
+
+def _fit_run(
+    ring: Stroke, i: int, j: int, smooth: set[int], err: float
+) -> list[Segment]:
+    n = len(ring)
+    run = [ring[k % n] for k in range(i, (j if j > i else j + n) + 1)]
+    if len(run) < 2:
+        return []
+    run = _densify(run)
+    if len(run) == 2 or _straight(run, err):
+        return [("L", run[-1])]
+    t1 = _centred_tangent(ring, i) if i in smooth else _norm(_sub(run[1], run[0]))
+    t2 = (
+        _mul(_centred_tangent(ring, j), -1)
+        if j in smooth
+        else _norm(_sub(run[-2], run[-1]))
+    )
+    return [("C", c[1], c[2], c[3]) for c in _fit(run, t1, t2, err)]
+
+
+def fit_ring(
+    ring: Stroke, err: float = ERROR, corner: float = CORNER
+) -> tuple[Point, list[Segment]]:
+    """Fit a closed ring without its repeated last point, preserving corners.
+
+    Returns a start and ('L', end) / ('C', c1, c2, end) segments.
+    Example: ``start, segments = fit_ring([(0, 0), (10, 0), (0, 10)])``.
+    """
+    if len(ring) < 3:
+        return ring[0], [("L", p) for p in ring[1:]]
+    corners, smooth = _ring_splits(ring, corner)
     segs = []
     for ci, i in enumerate(corners):
         j = corners[(ci + 1) % len(corners)]
-        run = [ring[k % n] for k in range(i, (j if j > i else j + n) + 1)]
-        if len(run) < 2:
-            continue
-        run = _densify(run)
-        if len(run) == 2 or _straight(run, err):
-            segs.append(("L", run[-1]))
-            continue
-        t1 = centred(i) if i in smooth else _norm(_sub(run[1], run[0]))
-        t2 = _mul(centred(j), -1) if j in smooth else _norm(_sub(run[-2], run[-1]))
-        for c in _fit(run, t1, t2, err):
-            segs.append(("C", c[1], c[2], c[3]))
-    return start, segs
+        segs.extend(_fit_run(ring, i, j, smooth, err))
+    return ring[corners[0]], segs

@@ -17,19 +17,36 @@ from fontTools.ttLib import TTFont
 BASES = {"i", "l", "j", "q", "one", "dotlessi", "uni0237"}
 LETTERS = set("iljq")
 
-font = TTFont(sys.argv[1])
-cmap = font.getBestCmap()
-skip = set()
-# In the italics, hinting t and f too made l/t and t/f worse (+0.018, +0.023
-# at 12 px); left out there, nothing is worse and sharpness still rises.
-if font["post"].italicAngle:
-    BASES |= {"t", "f", "tcaron", "tbar", "uni021B", "uni0163"}
-    LETTERS |= {"t", "f"}
-for cp, name in cmap.items():
-    d = ud.normalize("NFD", chr(cp))
-    if d and d[0] in LETTERS and len(d) > 1:
-        skip.add(name)
-for name in font.getGlyphOrder():
-    if name.split(".")[0] in BASES or name.split(".")[0] in skip:
-        skip.add(name)
-print(",".join(sorted(n for n in skip if re.fullmatch(r"[A-Za-z0-9_.]+", n))))
+
+def unhinted_glyphs(font: TTFont) -> list[str]:
+    """Names whose hinting harms legibility; e.g. ``unhinted_glyphs(font)``."""
+    bases, letters = set(BASES), set(LETTERS)
+    # In italics, hinting t and f made l/t and t/f worse (+0.018, +0.023
+    # at 12 px); left out there, nothing is worse and sharpness still rises.
+    if font["post"].italicAngle:
+        bases |= {"t", "f", "tcaron", "tbar", "uni021B", "uni0163"}
+        letters |= {"t", "f"}
+    skip = _accented_glyphs(font.getBestCmap(), letters)
+    for name in font.getGlyphOrder():
+        if name.split(".")[0] in bases or name.split(".")[0] in skip:
+            skip.add(name)
+    return sorted(n for n in skip if re.fullmatch(r"[A-Za-z0-9_.]+", n))
+
+
+def _accented_glyphs(cmap: dict[int, str], letters: set[str]) -> set[str]:
+    skip = set()
+    for cp, name in cmap.items():
+        decomposed = ud.normalize("NFD", chr(cp))
+        if decomposed and decomposed[0] in letters and len(decomposed) > 1:
+            skip.add(name)
+    return skip
+
+
+def main(argv: list[str]) -> None:
+    """Print the autohinter exclusions; e.g. ``main(["jandi.otf"])``."""
+    with TTFont(argv[0]) as font:
+        print(",".join(unhinted_glyphs(font)))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

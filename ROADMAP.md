@@ -359,11 +359,14 @@ and a refactor must not move them.
    moved to `letters.py`. Dead code from the proofs went with it: the
    pointed-quill sweep, `glyph_shape`, `skeleton`, the tilde composites.
    `tools/identical.py` checked every step: all ten fonts byte-identical.
-4. **Functions of 4–20 lines, at most two levels of indentation**, with
-   early returns. Done for the new modules. Left: `fit_ring`, `_generate`
-   and `_fit` (fitcurves), `centreline` and `restroke` (punct), `main` and
-   `write_md` (measure), `main` (check), `ornament.flourish`, and the
-   top-level scripts `nerd.py` and `nohint.py`.
+4. **Functions of 4–20 lines, at most two levels of indentation ✅**
+   Split the remaining curve fitter, punctuation, measurement/reporting,
+   regression gate, STAT metadata and flourish functions. `nerd.py` and
+   `nohint.py` now have importable functions and guarded `main()` entry points.
+   Arithmetic order and report formatting stay unchanged. The suite now has
+   82 tests; all ten unhinted fonts, NF output tables and hint exclusions
+   match the previous code (only font timestamps/checksums are ignored).
+   [Validation notes](docs/code-health-step4.md).
 5. **Explicit types** on every function: done for the new modules
    (`pen_types.py`: Point, Stroke, StrokesFn, Bounds, GlyphSet). Left: the
    drawing modules (letters, corsiva, caps, ornament, punct, marks), pen,

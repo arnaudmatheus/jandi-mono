@@ -1,6 +1,7 @@
 """Type names shared by the build modules."""
 
 from collections.abc import Callable
+from typing import Literal
 
 from fontTools.ttLib.ttGlyphSet import _TTGlyphSet
 
@@ -12,3 +13,6 @@ StrokesFn = Callable[[], list[Stroke]]
 Bounds = tuple[float, float, float, float]
 # What TTFont.getGlyphSet() returns: glyph name -> a glyph that draws itself.
 GlyphSet = _TTGlyphSet
+
+Cubic = tuple[Point, Point, Point, Point]
+Segment = tuple[Literal["L"], Point] | tuple[Literal["C"], Point, Point, Point]

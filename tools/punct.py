@@ -17,6 +17,12 @@ Both are sheared from Radon's angle (Regular 0°, Italic 11°) to Jandí's
 (7°, 13°) around the math axis, so a bar across two cells stays one bar."""
 
 import math
+import numpy as np
+import shapely
+from shapely.geometry import MultiPoint, Point, MultiLineString
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import voronoi_diagram, linemerge
+from pen_types import Stroke, Point as XY
 from fontTools.pens.basePen import BasePen
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
@@ -302,15 +308,7 @@ def stroke_width(gs, name="hyphen"):
     ).length
 
 
-def centreline(poly, stroke):
-    """The medial axis of a stroke outline, as polylines: Voronoi edges of the
-    densified outline that lie inside it, away from the edge (that prunes the
-    spurs running into corners). Loose ends are then pushed back out to the
-    outline, so a bar still reaches the cell edge and joins its neighbour."""
-    import shapely
-    from shapely.geometry import MultiPoint, Point, MultiLineString
-    from shapely.ops import voronoi_diagram, linemerge
-
+def _voronoi_segments(poly: Polygon) -> np.ndarray:
     dense = shapely.segmentize(poly, 10)
     pts = [
         q for ring in [dense.exterior] + list(dense.interiors) for q in ring.coords[:-1]
@@ -318,85 +316,122 @@ def centreline(poly, stroke):
     edges = voronoi_diagram(MultiPoint(pts), edges=True)
     # Every Voronoi edge as a two-point segment, built and tested as arrays
     # (Shapely 2): one call each instead of one Python object per edge.
-    import numpy as np
-
     lines = shapely.get_parts(shapely.get_parts(edges))
     coords, idx = shapely.get_coordinates(lines, return_index=True)
     same = idx[1:] == idx[:-1]
     segs_xy = np.stack([coords[:-1][same], coords[1:][same]], axis=1)  # (m, 2, 2)
-    cand = shapely.linestrings(segs_xy)
+    return shapely.linestrings(segs_xy)
+
+
+def _interior_lines(poly: Polygon, stroke: float) -> list[Stroke]:
+    cand = _voronoi_segments(poly)
     shapely.prepare(poly)
     bnd = poly.boundary
     clear = 0.28 * stroke
     ok = shapely.contains(poly, cand) & (shapely.distance(cand, bnd) >= clear)
     keep = list(cand[ok])
     if not keep:
+        return []
+    merged = linemerge(MultiLineString(keep))
+    return [list(line.coords) for line in getattr(merged, "geoms", [merged])]
+
+
+def _endpoint_key(point: XY) -> XY:
+    return round(point[0], 1), round(point[1], 1)
+
+
+def _endpoint_degrees(lines: list[Stroke]) -> dict[XY, int]:
+    degree = {}
+    for line in lines:
+        for point in (line[0], line[-1]):
+            key = _endpoint_key(point)
+            degree[key] = degree.get(key, 0) + 1
+    return degree
+
+
+def _extend_endpoint(poly: Polygon, a: XY, b: XY, stroke: float) -> XY:
+    # Direction from the inside of the line out through this end.
+    dx, dy = a[0] - b[0], a[1] - b[1]
+    n = math.hypot(dx, dy) or 1.0
+    dx, dy = dx / n, dy / n
+    lo, hi = 0.0, 2.0 * stroke
+    for _ in range(12):
+        m = (lo + hi) / 2
+        lo, hi = (
+            (m, hi) if poly.contains(Point(a[0] + dx * m, a[1] + dy * m)) else (lo, m)
+        )
+    reach = max(0.0, lo - 0.30 * stroke)  # the nib adds its own half-width
+    return a[0] + dx * reach, a[1] + dy * reach
+
+
+def _extend_line(
+    poly: Polygon, line: Stroke, degree: dict[XY, int], stroke: float
+) -> Stroke:
+    line = list(line)
+    for end in (0, -1):
+        if degree[_endpoint_key(line[end])] != 1 or len(line) < 2:
+            continue
+        line[end] = _extend_endpoint(
+            poly, line[end], line[1 if end == 0 else -2], stroke
+        )
+    return line
+
+
+def centreline(poly: Polygon, stroke: float) -> list[Stroke]:
+    """Find medial-axis polylines, pruning the spurs running into corners.
+
+    Loose ends reach back toward the outline so bars join their neighbours.
+    Example: ``lines = centreline(Polygon([(0, 0), (800, 0), (800, 100), (0, 100)]), 100)``.
+    """
+    lines = _interior_lines(poly, stroke)
+    if not lines:
         c = poly.representative_point()
         return [[(c.x, c.y), (c.x + 1, c.y + 1)]]
-    merged = linemerge(MultiLineString(keep))
-    lines = [list(l.coords) for l in getattr(merged, "geoms", [merged])]
-    degree = {}
-    key = lambda q: (round(q[0], 1), round(q[1], 1))
-    for l in lines:
-        for q in (l[0], l[-1]):
-            degree[key(q)] = degree.get(key(q), 0) + 1
+    degree = _endpoint_degrees(lines)
+    return [_extend_line(poly, line, degree, stroke) for line in lines]
+
+
+def _restroke_polygon(
+    g: Polygon, w: float, t: float, shear_deg: float, radon_stroke: float
+) -> list[BaseGeometry]:
+    # Solid shapes (the filled triangle of |> and <|) aren't strokes: they
+    # stay solid, only leaned to Jandí's angle. Where two strokes cross the
+    # inscribed circle is at most ≈0.7 of a stroke, so 0.9 can't misfire.
+    if _inscribed(g) > 0.9 * radon_stroke:
+        return [affinity.skew(g, xs=shear_deg, origin=(0, AXIS))]
     out = []
-    for l in lines:
-        l = list(l)
-        for end in (0, -1):
-            if degree[key(l[end])] != 1 or len(l) < 2:
-                continue
-            a, b = l[end], l[1 if end == 0 else -2]
-            # direction from the inside of the line out through this end
-            dx, dy = a[0] - b[0], a[1] - b[1]
-            n = math.hypot(dx, dy) or 1.0
-            dx, dy = dx / n, dy / n
-            lo, hi = 0.0, 2.0 * stroke
-            for _ in range(12):
-                m = (lo + hi) / 2
-                lo, hi = (
-                    (m, hi)
-                    if poly.contains(Point(a[0] + dx * m, a[1] + dy * m))
-                    else (lo, m)
-                )
-            reach = max(0.0, lo - 0.30 * stroke)  # the nib adds its own half-width
-            l[end] = (a[0] + dx * reach, a[1] + dy * reach)
-        out.append(l)
+    for line in centreline(g, radon_stroke):
+        line = [
+            (x + (y - AXIS) * math.tan(math.radians(shear_deg)), y) for x, y in line
+        ]
+        out.append(pen.sweep_broad(line, w, t))
     return out
 
 
-def restroke(shape, w, t, shear_deg, radon_stroke):
-    """Radon outline -> the same path written with the Jandí nib: the nib is
-    swept along the outline's centreline, so the weight comes from the nib
-    alone, as in the letters, whatever Radon's stroke was."""
+def _restroke_dot(dot: Polygon, w: float, t: float, shear_deg: float) -> BaseGeometry:
+    cx, cy = dot.centroid.x, dot.centroid.y
+    cx += (cy - AXIS) * math.tan(math.radians(shear_deg))
+    # The drop is drawn upright then slanted around y = 0; undo that shift.
+    return affinity.translate(drop_shape(0, cy, w, t), cx - cy * math.tan(pen.SLANT), 0)
+
+
+def restroke(
+    shape: BaseGeometry, w: float, t: float, shear_deg: float, radon_stroke: float
+) -> BaseGeometry:
+    """Write Radon's centreline with Jandí's nib, preserving joins and solids.
+
+    Weight comes from the nib alone, whatever Radon's stroke was.
+    Example: ``ink = restroke(outline(gs, "hyphen"), 138, 106, 7, 178)``.
+    """
     if shape.is_empty:
         return shape
     geoms = _polygons(shape)
     dots = [g for g in geoms if _is_dot(g)]
     out = []
     for g in geoms:
-        if g in dots:
-            continue
-        # Solid shapes (the filled triangle of |> and <|) aren't strokes: they
-        # stay solid, only leaned to Jandí's angle. Where two strokes cross the
-        # inscribed circle is at most ≈0.7 of a stroke, so 0.9 can't misfire.
-        if _inscribed(g) > 0.9 * radon_stroke:
-            out.append(affinity.skew(g, xs=shear_deg, origin=(0, AXIS)))
-            continue
-        for line in centreline(g, radon_stroke):
-            line = [
-                (x + (y - AXIS) * math.tan(math.radians(shear_deg)), y) for x, y in line
-            ]
-            out.append(pen.sweep_broad(line, w, t))
-    for d in dots:
-        cx, cy = d.centroid.x, d.centroid.y
-        cx += (cy - AXIS) * math.tan(math.radians(shear_deg))
-        # the drop is drawn upright then slanted around y = 0; undo that shift
-        out.append(
-            affinity.translate(
-                drop_shape(0, cy, w, t), cx - cy * math.tan(pen.SLANT), 0
-            )
-        )
+        if g not in dots:
+            out.extend(_restroke_polygon(g, w, t, shear_deg, radon_stroke))
+    out.extend(_restroke_dot(d, w, t, shear_deg) for d in dots)
     return unary_union(out)
 
 

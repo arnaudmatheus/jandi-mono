@@ -24,6 +24,10 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from PIL import Image
 from fontTools.ttLib import TTFont
+from metric_types import FontMetrics, Spacing
+from metrics_report import metrics_markdown
+from pathlib import Path
+from functools import partial
 
 CONFUSABLE = [
     ("e", "c"),
@@ -96,24 +100,27 @@ class Renderer:
             self.conf[hint] = p
         return self.conf[hint]
 
-    def render(self, markup, px, hint="hintslight"):
+    def _render_command(self, markup_path: str, output: str, px: int) -> list[str]:
+        return [
+            "pango-view",
+            "-q",
+            "--markup",
+            f"--font={self.family}, {self.style} {px}px",
+            "--background=black",
+            "--margin=6",
+            "--dpi=96",
+            f"--output={output}",
+            markup_path,
+        ]
+
+    def render(self, markup: str, px: int, hint: str = "hintslight") -> np.ndarray:
+        """Render markup with this font only; e.g. ``renderer.render("abc", 12)``."""
         with tempfile.TemporaryDirectory() as tmp:
-            mk = os.path.join(tmp, "t.txt")
-            out = os.path.join(tmp, "o.png")
-            open(mk, "w").write(markup)
+            mk, out = os.path.join(tmp, "t.txt"), os.path.join(tmp, "o.png")
+            Path(mk).write_text(markup)
             env = dict(os.environ, FONTCONFIG_FILE=self._conf(hint))
             subprocess.run(
-                [
-                    "pango-view",
-                    "-q",
-                    "--markup",
-                    f"--font={self.family}, {self.style} {px}px",
-                    "--background=black",
-                    "--margin=6",
-                    "--dpi=96",
-                    f"--output={out}",
-                    mk,
-                ],
+                self._render_command(mk, out, px),
                 env=env,
                 check=True,
                 capture_output=True,
@@ -132,7 +139,13 @@ def blur(a):
     return np.apply_along_axis(lambda c: np.convolve(c, k, "same"), 0, a)
 
 
-def similarity(a, b, shift):
+def _image_correlation(a: np.ndarray, b: np.ndarray) -> float:
+    x, y = a - a.mean(), b - b.mean()
+    d = math.sqrt((x * x).sum() * (y * y).sum())
+    return float((x * y).sum() / d) if d else -1.0
+
+
+def similarity(a: np.ndarray, b: np.ndarray, shift: int) -> float:
     h, w = max(a.shape[0], b.shape[0]), max(a.shape[1], b.shape[1])
     A = np.zeros((h, w), np.float32)
     A[: a.shape[0], : a.shape[1]] = blur(a)
@@ -142,21 +155,16 @@ def similarity(a, b, shift):
     for dy in range(-shift, shift + 1):
         for dx in range(-shift, shift + 1):
             S = np.roll(np.roll(Bm, dy, 0), dx, 1)
-            x, y = A - A.mean(), S - S.mean()
-            d = math.sqrt((x * x).sum() * (y * y).sum())
-            if d:
-                best = max(best, float((x * y).sum() / d))
+            best = max(best, _image_correlation(A, S))
     return best
 
 
 def confusability(r):
     out = {}
     for px in SIZES:
-        cache = {}
         chars = sorted({c for p in CONFUSABLE for c in p})
         with ThreadPoolExecutor(8) as ex:
-            for c, img in zip(chars, ex.map(lambda c: r.char(c, px), chars)):
-                cache[c] = img
+            cache = dict(zip(chars, ex.map(lambda c: r.char(c, px), chars)))
         out[px] = {
             f"{a}/{b}": round(similarity(cache[a], cache[b], 1), 3)
             for a, b in CONFUSABLE
@@ -164,23 +172,25 @@ def confusability(r):
     return out
 
 
-def spacing(r, px=40):
-    def gap(bg):
-        a, b = (html.escape(c) for c in bg)
-        img = r.render(
-            f'<span foreground="#FF0000">{a}</span><span foreground="#00FF00">{b}</span>',
-            px,
-        )
-        R, G = img[:, :, 0] > 0.3, img[:, :, 1] > 0.3
-        gaps = []
-        for y in range(img.shape[0]):
-            ra, gb = np.nonzero(R[y])[0], np.nonzero(G[y])[0]
-            if len(ra) and len(gb):
-                gaps.append(gb.min() - ra.max())
-        return float(np.mean(gaps)) if gaps else None
+def _bigram_gap(r: Renderer, px: int, bg: str) -> float | None:
+    a, b = (html.escape(c) for c in bg)
+    img = r.render(
+        f'<span foreground="#FF0000">{a}</span><span foreground="#00FF00">{b}</span>',
+        px,
+    )
+    red, green = img[:, :, 0] > 0.3, img[:, :, 1] > 0.3
+    gaps = []
+    for y in range(img.shape[0]):
+        ra, gb = np.nonzero(red[y])[0], np.nonzero(green[y])[0]
+        if len(ra) and len(gb):
+            gaps.append(gb.min() - ra.max())
+    return float(np.mean(gaps)) if gaps else None
 
+
+def spacing(r: Renderer, px: int = 40) -> Spacing:
+    """Measure bigram gap variation; e.g. ``spacing(Renderer("regular.otf"))``."""
     with ThreadPoolExecutor(8) as ex:
-        res = dict(zip(BIGRAMS, ex.map(gap, BIGRAMS)))
+        res = dict(zip(BIGRAMS, ex.map(partial(_bigram_gap, r, px), BIGRAMS)))
     vals = np.array([v for v in res.values() if v is not None])
     ordered = sorted((v, k) for k, v in res.items() if v is not None)
     return {
@@ -223,135 +233,50 @@ def sharpness(r):
     return out
 
 
-def main():
+def _measure_spec(spec: str) -> tuple[str, FontMetrics]:
+    label, paths = spec.split("=", 1)
+    reg, _, ita = paths.partition(":")
+    rr = Renderer(reg)
+    res: FontMetrics = {
+        "font": f"{rr.family} {rr.style}",
+        "x_height_em": round(rr.xh, 4),
+        "confusability": confusability(rr),
+        "spacing": spacing(rr),
+        "visual_angle": visual_angle(rr),
+        "sharpness": sharpness(rr),
+    }
+    if ita:
+        res["roman_italic"] = roman_italic(rr, Renderer(ita))
+    return label, res
+
+
+def _measure_args(argv: list[str] | None) -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--font", action="append", required=True, help="LABEL=REGULAR[:ITALIC]"
     )
     ap.add_argument("--out", default="docs/metrics")
-    a = ap.parse_args()
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Measure fonts and save reports; e.g. ``main(["--font", "Jandi=font.otf"])``."""
+    a = _measure_args(argv)
     results = {}
     for spec in a.font:
-        label, paths = spec.split("=", 1)
-        reg, _, ita = paths.partition(":")
-        rr = Renderer(reg)
-        res = {
-            "font": f"{rr.family} {rr.style}",
-            "x_height_em": round(rr.xh, 4),
-            "confusability": confusability(rr),
-            "spacing": spacing(rr),
-            "visual_angle": visual_angle(rr),
-            "sharpness": sharpness(rr),
-        }
-        if ita:
-            res["roman_italic"] = roman_italic(rr, Renderer(ita))
+        label, res = _measure_spec(spec)
         results[label] = res
         print(f"measured {label}")
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
-    json.dump(results, open(a.out + ".json", "w"), indent=1, ensure_ascii=False)
+    Path(a.out + ".json").write_text(json.dumps(results, indent=1, ensure_ascii=False))
     write_md(results, a.out + ".md")
-    print(open(a.out + ".md").read())
+    print(Path(a.out + ".md").read_text())
 
 
-def write_md(res, path):
-    L = list(res)
-    md = [
-        "# Jandí Mono — metrics",
-        "",
-        "Generated by `tools/measure.py`. Pango/FreeType, hintslight, grayscale AA, "
-        "each font in an isolated fontconfig. Similarity: 1.0 = identical (lower is better for confusable pairs).",
-        "",
-    ]
-    md += ["## Confusability (similarity, lower = easier to tell apart)", ""]
-    for px in SIZES:
-        md += [
-            f"**{px} px**",
-            "",
-            "| Pair | " + " | ".join(L) + " |",
-            "|---|" + "---|" * len(L),
-        ]
-        for a, b in CONFUSABLE:
-            k = f"{a}/{b}"
-            md.append(
-                f"| `{k}` | "
-                + " | ".join(f"{res[l]['confusability'][px][k]:.3f}" for l in L)
-                + " |"
-            )
-        md.append(
-            "| **mean** | "
-            + " | ".join(
-                f"**{np.mean(list(res[l]['confusability'][px].values())):.3f}**"
-                for l in L
-            )
-            + " |"
-        )
-        md.append("")
-    md += [
-        "## Spacing evenness (bigram ink gaps at 40 px)",
-        "",
-        "| | " + " | ".join(L) + " |",
-        "|---|" + "---|" * len(L),
-    ]
-    md.append(
-        "| Mean gap (px) | "
-        + " | ".join(str(res[l]["spacing"]["mean_gap_px@40"]) for l in L)
-        + " |"
-    )
-    md.append(
-        "| Variation (CV, lower = more even) | "
-        + " | ".join(f"**{res[l]['spacing']['cv']}**" for l in L)
-        + " |"
-    )
-    md.append(
-        "| Tightest | "
-        + " | ".join(" ".join(res[l]["spacing"]["tightest"]) for l in L)
-        + " |"
-    )
-    md.append(
-        "| Loosest | "
-        + " | ".join(" ".join(res[l]["spacing"]["loosest"]) for l in L)
-        + " |"
-    )
-    md += [
-        "",
-        "## Roman / italic similarity (15 px, lower = comments read apart from code)",
-        "",
-    ]
-    md += ["| | " + " | ".join(L) + " |", "|---|" + "---|" * len(L)]
-    md.append(
-        "| Mean | "
-        + " | ".join(
-            f"**{res[l]['roman_italic']['mean']}**" if "roman_italic" in res[l] else "—"
-            for l in L
-        )
-        + " |"
-    )
-    md += [
-        "",
-        "## Visual angle of the x-height at 12 pt (critical print size ≈ 0.2°)",
-        "",
-    ]
-    md += ["| Setup | " + " | ".join(L) + " |", "|---|" + "---|" * len(L)]
-    for name, *_ in SETUPS:
-        md.append(
-            f"| {name} | "
-            + " | ".join(
-                f"{res[l]['visual_angle'][name]['degrees']}° ({res[l]['visual_angle'][name]['x_height_mm']} mm)"
-                for l in L
-            )
-            + " |"
-        )
-    md += [
-        "",
-        "## Sharpness at 12 px (share of fully dark ink pixels, higher = crisper)",
-        "",
-    ]
-    md += ["| Hinting | " + " | ".join(L) + " |", "|---|" + "---|" * len(L)]
-    for h in ("hintslight", "hintnone"):
-        md.append(
-            f"| {h} | " + " | ".join(str(res[l]["sharpness"][h]) for l in L) + " |"
-        )
-    open(path, "w").write("\n".join(md) + "\n")
+def write_md(res: dict[str, FontMetrics], path: str) -> None:
+    """Write the established metrics tables; e.g. ``write_md(results, "metrics.md")``."""
+    markdown = metrics_markdown(res, SIZES, CONFUSABLE, [name for name, *_ in SETUPS])
+    Path(path).write_text(markdown)
 
 
 if __name__ == "__main__":
