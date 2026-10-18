@@ -158,7 +158,7 @@ Wide's one exception is not a shape change. The outlines are the default's;
 the 1320 cell puts each letter at a different pixel phase at 12 px. Nudging
 the letters off-centre to match would show at large sizes, so it stays.
 
-### 0.6.0: pen punctuation and ligatures ✅ (built and measured, not yet released)
+### 0.6.0: pen punctuation and ligatures ✅
 
 **E1. Punctuation with the pen** (`tools/punct.py`).
 - **Drawn from skeletons:** `. , : ; ' " ! ? ( ) [ ] { }`. Their unit is the
@@ -215,33 +215,73 @@ terminals still use the small dab, not the punctuation drop. Dot size feeds
 `i/l` and `i/j`, so that change needs its own measured pass. Sharpness dipped
 with the new curves, which is F2's job (hinting).
 
+### 0.7.0: outline quality and the Text weight ✅ (built and measured, not yet released)
+
+**F1. Smooth curves** (`tools/fitcurves.py`). The pen's polygon outlines are
+fitted back into cubic Béziers with Schneider's algorithm (*Graphics Gems*,
+1990). Real corners stay sharp: the nib's square ends and joins between
+strokes.
+- **Faithful:** every outline stays within about 1 unit of the pen shape on
+  average (2000 per em).
+- **Lighter:** letters went from 55 segments on average to 26 (Radon: 18), so
+  `o` 91 → 22 and `a` 79 → 27. That's 2× overall, not the 5× once aimed for.
+  What remains is structure, not noise: each stroke's square ends and joins.
+  A looser fit only went from 2527 to 2127 segments while doubling the error.
+- **Two bugs the area check caught.** A ring with a single corner collapsed
+  into a line, which filled the counters of `O` and `g`. Long straight edges
+  bulged between the polygon's vertices, so runs are now densified before
+  fitting.
+
+**F2. Hinting.** `otfautohint` (AFDKO) runs in `build.sh`.
+- **Alignment zones measured per style** from the ink: x-height 1101–1123,
+  ascender 1584–1606, descender −455. Radon's zones (x-height 1027, ascender
+  1530) no longer matched the pen letters.
+- **Stems from the nib:** 174 vertical, 166 horizontal.
+- **Some letters stay unhinted.** Hinting everything made narrow pairs more
+  alike: snapping lined their heights up (`i/l` +0.014, `f/j` +0.012, `1/l`
+  +0.011, `g/q` +0.011). Excluding one letter of a pair only moved the
+  problem. So `i l j q 1` stay unhinted with all their accented and healing
+  forms (`tools/nohint.py`), and `t f` too in the italics (`l/t` +0.018,
+  `t/f` +0.023 otherwise).
+
+**F3. The pairs healing can't reach.** `m` and `w` narrowed: stems at
+300/600/900 instead of 250/600/950, in the corsiva too.
+- `mm mw ww` were the tightest pairs: 6.5 px at 40 px against a mean of 14.
+- Spacing CV 0.252 → 0.232 (Regular) before hinting, with no pair worse.
+- **Rejected:** a longer `i` exit (`i/l` +0.012) and a `t` bar reaching
+  further left (`t/f` +0.025). Narrow beside narrow stays the loosest.
+
+**F4. One drop: only for the ball terminals.**
+- **Ball terminals** on `c f j r y`, `C G J S` and the figures are now the
+  punctuation's teardrop (`pen.GOTA`). `i/j` and `f/j` improve by
+  0.005–0.008, and nothing gets worse.
+- **Dots stay dabs.** As drops, the dots of `i j` and the diacritics made
+  `i/l` worse at every size tried (+0.028 to +0.047). A rounder, heavier dot
+  fills the room above the stem that tells `i` from `l`.
+
+**G. Jandi Mono Text** (Regular and Italic, plus NF): the nib 8% wider,
+weight class 450, for light backgrounds and the 97 PPI monitor. Both checks
+pass:
+- `l` stem 174 → 188 (+8.0%).
+- The thinnest stroke is 0.98 px at 12 px (target ≥ 0.6).
+- Its punctuation pairs are at or below Radon's (`(/[` 0.810 vs 0.819,
+  `[/{` 0.882 vs 0.921). They sit above 0.7.0's Regular, as a heavier stroke
+  closes counters; that's the expected cost of the weight.
+
+| Measure | 0.6.0 | 0.7.0 | Radon |
+|---|---|---|---|
+| Regular confusability, 12 / 15 / 20 px | 0.887 / 0.864 / 0.828 | **0.866 / 0.840 / 0.815** | 0.869 / 0.844 / 0.801 |
+| Italic confusability, 12 / 15 / 20 px | 0.879 / 0.849 / 0.808 | **0.862 / 0.829 / 0.798** | |
+| Spacing CV, Regular / Italic / Wide | 0.253 / 0.271 / 0.208 | **0.239 / 0.256 / 0.196** | 0.267 |
+| Sharpness at 12 px (hintslight), Regular / Italic | 0.136 / 0.127 | **0.157 / 0.165** | 0.158 |
+| Pairs more than 0.01 worse (Regular, Italic, Wide) | n/a | **none** | |
+
+Builds run at most `JOBS` processes at once (default 4): with everything in
+parallel the machine ran out of memory.
+
 ---
 
 ## Next
-
-### 0.7.0: outline quality and the Text weight
-
-**F1. Smooth curves.** Fit cubic Béziers to the pen outlines (55–120 straight
-segments per letter today, against Radon's 13–20). The balls and loops are
-where facets show first, at the lock-screen clock and when zooming.
-
-**F4. One drop for letters and punctuation.** Give `i j ä` and the ball
-terminals the punctuation's *gota*, sized by measurement (`i/l`, `i/j`).
-
-**F3. The pairs healing can't reach.** Narrow beside narrow (`li ti fi`) is
-the loosest and wide beside wide (`mm mw ww`) the tightest; Radon's healing
-doesn't act on either (D2). Redraw while the outlines are open: the lead-ins
-of `i l t` and the stems of `m w`. Measured with the three-letter contexts
-from D2.
-
-**F2. Hinting.** Run `otfautohint` (afdko) in `build.sh` so hintslight can
-snap the x-height and baseline.
-
-**G. Jandi Mono Text (≈450, nib ×1.08).** For the Jandí Light theme and the LG
-at 97 PPI, where thin strokes fade. The corsiva's hairlines matter most here.
-
-*Check:* sharpness at 12 px up, outline points down ≥ 5×, spacing CV down. In Text, stems are
-8% heavier and hairlines ≥ 0.6 px at 12 px.
 
 ### 0.8.0: ornament (opt-in; the carving and the ceiling)
 
@@ -291,7 +331,7 @@ on, glyphs render in Ghostty, Quickshell and Chromium, and nothing clips.
 | 0.4.0 ✅ | Barroco na letra (Regular nº 9, corsiva nº 7, feet, balls) | The base inspiration goes into the letters before anything is built on them |
 | 0.5.0 ✅ | D1–D4 | Spacing re-derived from the Baroque shapes |
 | 0.6.0 ✅ | E1, E2 | Punctuation and ligatures need the final drop size and spacing |
-| 0.7.0 | F1–F4, G | Curves and hints close the outline pipeline. Text reuses it |
+| 0.7.0 ✅ | F1–F4, G | Curves and hints close the outline pipeline. Text reuses it |
 | 0.8.0 | I1–I4 | Ornament drawn once, in final curves, all opt-in |
 | 1.0.0 | Validation | The user's own reading decides |
 

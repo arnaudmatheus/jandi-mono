@@ -18,6 +18,7 @@ from shapely.geometry.polygon import orient
 from shapely.ops import unary_union
 from shapely import affinity
 import pen
+import fitcurves
 from marks import MARKS, CARON_APOSTROPHE
 
 # One skeleton set, four styles. Subtle contrast (decision, proof 01) is kept in
@@ -34,7 +35,7 @@ STYLES = {
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
-VERSION = "0.6.0"
+VERSION = "0.7.0"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -50,8 +51,16 @@ if '--cell' in args:
 # (Slattery & Rayner 2013).
 if '--wide' in args:
     args.remove('--wide'); CELL = 1320; FAMILY, PS = "Jandi Mono Wide", "JandiMonoWide"
+# Jandi Mono Text (roadmap G): the same letters with the nib 8% wider, for
+# light backgrounds and low-density screens, where thin strokes fade (Commit
+# Mono recommends 450 against 400 there). Its own family, weight class 450.
+TEXT = '--text' in args
+if TEXT:
+    args.remove('--text'); FAMILY, PS = FAMILY + " Text", PS + "Text"
 src, out = args[0], args[1]
 W, T = STYLES[style]['nib']
+if TEXT:
+    W, T = W * 1.08, T * 1.08
 pen.SLANT = math.radians(STYLES[style]['slant'])
 pen.PEN = math.radians(STYLES[style].get('pen', 35))
 pen.NIB = STYLES[style].get('model', 'broad')
@@ -143,14 +152,22 @@ def strokes_for(gname):
 # ------------------------------------------------------------- write outlines
 def to_charstring(shape, width=None):
     p = T2CharStringPen(width, None)           # width None == defaultWidthX (the cell)
-    shape = shape.simplify(1.5)
+    shape = shape.simplify(0.5)
     for g in (shape.geoms if hasattr(shape, 'geoms') else [shape]):
         if g.geom_type != 'Polygon' or g.is_empty:
             continue
         g = orient(g, sign=1.0)                # CFF: outer contours counter-clockwise
         for ring in [g.exterior] + list(g.interiors):
-            pts = [(round(x), round(y)) for x, y in ring.coords[:-1]]
-            p.moveTo(pts[0]); [p.lineTo(q) for q in pts[1:]]; p.closePath()
+            # Curves, not polylines (roadmap F1): tools/fitcurves.py.
+            start, segs = fitcurves.fit_ring(list(ring.coords[:-1]))
+            r = lambda q: (round(q[0]), round(q[1]))
+            p.moveTo(r(start))
+            for s in segs:
+                if s[0] == 'L':
+                    p.lineTo(r(s[1]))
+                else:
+                    p.curveTo(r(s[1]), r(s[2]), r(s[3]))
+            p.closePath()
     return p.getCharString(private=td.Private, globalSubrs=cff.GlobalSubrs)
 
 INK = {}
@@ -413,6 +430,26 @@ for gname in mark_anchor:
 for gname in list(placed) + gdef_bases:
     gdef.setdefault(gname, 1)
 
+# 5b. Alignment zones and stems for hinting (roadmap F2), measured on this
+# style's own ink. Radon's zones (x-height 1027, ascender 1530) no longer
+# match the pen letters (x-height 1080, the nib's corner above it), and wrong
+# zones would snap the wrong heights. Each zone is 22 units: the flat height
+# plus the round letters' overshoot, under the BlueScale limit.
+import statistics
+def _median(names, idx):
+    return statistics.median(INK[g][idx] for g in names if g in INK)
+xh = _median('xzvwuamnr', 3); base = _median('xzuamnrlhi', 1)
+cap = _median('EFHIKLTXZ', 3); asc = _median('bdhkl', 3); desc = _median('gjpqy', 1)
+z = lambda top: [round(top) - 4, round(top) + 18]
+priv = td.Private
+priv.BlueValues = [round(base) - 18, round(base) + 4] + z(xh) + z(cap) + z(asc)
+priv.OtherBlues = [round(desc) - 4, round(desc) + 18]
+priv.BlueScale, priv.BlueShift, priv.BlueFuzz = 0.037, 7, 0
+nib_v = round(W * math.cos(pen.PEN) + T * math.sin(pen.PEN))   # a vertical stroke's width
+nib_h = round(W * math.sin(pen.PEN) + T * math.cos(pen.PEN))   # a horizontal stroke's width
+priv.StdVW, priv.StdHW = nib_v, nib_h
+priv.StemSnapV, priv.StemSnapH = [nib_v], [nib_h]
+
 # 6. names: OFL Reserved Font Names may not survive in a derivative
 name = font['name']
 for rec in list(name.names):
@@ -432,6 +469,8 @@ td.FullName = f"{FAMILY} {style}"; td.FamilyName = FAMILY
 if 'Italic' in style:
     font['post'].italicAngle = -float(STYLES[style]['slant'])
 font['OS/2'].fsType = 0
+if TEXT:
+    font['OS/2'].usWeightClass = 450
 font['OS/2'].sxHeight = XH_NEW
 font['OS/2'].xAvgCharWidth = CELL
 font.save(out)

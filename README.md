@@ -98,7 +98,11 @@ drawing, symbol set and OpenType machinery.
   is more even than Radon's.
 - **A tighter cell than Radon:** 1160 units (0.58 em) instead of 1240, so the
   narrow pen letters don't float apart. Box drawing still meets edge to edge.
-- Regular, Bold, Italic, Bold Italic, in a normal and a Wide cell.
+- **Smooth, hinted outlines:** the pen's strokes are fitted back into Bézier
+  curves and hinted with Adobe's autohinter, so text is crisp at 12 px and
+  smooth at any size.
+- Regular, Bold, Italic, Bold Italic, in a normal and a Wide cell, plus a
+  heavier Text weight.
 
 ### How it got here
 
@@ -117,6 +121,8 @@ from it were ever used, which its licence forbids.
 | `Jandi Mono NF` | Plus 10,828 Nerd Fonts icons for bars, prompts and editors, and braille for btop-style graphs (upstream Radon has no braille) |
 | `Jandi Mono Wide` | The same letters in a wider cell (1320 instead of 1160), for readers who need extra space between letters |
 | `Jandi Mono Wide NF` | Wide, plus the Nerd Fonts icons |
+| `Jandi Mono Text` | Regular and Italic with an 8% heavier nib (weight 450), for light backgrounds and low-density screens, where thin strokes fade |
+| `Jandi Mono Text NF` | Text, plus the Nerd Fonts icons |
 
 ## Install
 
@@ -138,9 +144,17 @@ omarchy font set "Jandi Mono NF"
 ```sh
 pip install -r requirements.txt
 ./build.sh            # or: ./build.sh /path/to/python
+JOBS=2 ./build.sh     # fewer processes at once on a machine with little memory
+./tools/specimen.sh   # regenerates docs/specimen.png from build/
 ```
 
+Hinting needs AFDKO's `otfautohint` (in `requirements.txt`); without it the
+fonts build unhinted.
+
 `tools/pen.py` holds the pen engine and the lowercase skeletons,
+`tools/corsiva.py` the Italic's letters after Figueiredo's plate nº 7,
+`tools/punct.py` the punctuation and the re-stroked symbols and ligatures,
+`tools/fitcurves.py` the curve fitting,
 `tools/caps.py` the capitals, figures and extra letters, `tools/marks.py` the
 diacritics. `tools/merge.py` writes them into the upstream Radon fonts in
 `sources/upstream/`; `tools/nerd.py` adds the icons from an installed

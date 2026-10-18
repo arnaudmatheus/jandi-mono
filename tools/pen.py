@@ -101,7 +101,7 @@ def strokes_dotlessi():
     return [path(('M', (400, 865)), ('L', (560, T)), ('L', (560, 170)), ('C', (560, 80), (630, 40), (760, 100)))]
 
 def strokes_idot():
-    return strokes_dotlessi() + [path(('M', (557, 1267)), ('L', (593, 1303)))]
+    return strokes_dotlessi() + [DOT()]
 
 def strokes_tilde(cx=620, y=1190):
     # Onda de pena: fina-grossa-fina sai do ângulo da pena, não de desenho.
@@ -121,8 +121,26 @@ ASC = lambda x: [('M', (x + 215, A - 175)), ('C', (x + 250, A - 60), (x + 180, A
                  ('C', (x + 30, A + 25), (x, A - 30), (x, A - 110))]
 # Ball terminal — the signature of Baroque type (c. 1700–1760) and of the
 # ball under Figueiredo's ascender curl: a short dab of the same pen.
+def GOTA(x, y, r):
+    """The drop (gota): a small teardrop loop, point up and to the right along
+    the pen angle. The same shape as the punctuation's drop (tools/punct.py);
+    at these sizes the nib fills the loop by itself."""
+    tip = (x + 0.75 * r, y + 1.15 * r)
+    return path(('M', tip), ('C', (x + 0.2 * r, y + 1.5 * r), (x - r, y + 0.7 * r), (x - r, y)),
+                ('C', (x - r, y - 0.75 * r), (x - 0.4 * r, y - r), (x + 0.15 * r, y - r)),
+                ('C', (x + 0.8 * r, y - r), (x + 1.05 * r, y - 0.35 * r), (x + 0.9 * r, y + 0.35 * r)),
+                ('C', (x + 0.85 * r, y + 0.75 * r), tip, tip))
+
+# The dots of i j and the diacritics stay a short diagonal dab. Tried as
+# drops (r 35/45/55): every size made i/l and f/j worse (i/l +0.028 to
+# +0.047), since a rounder, heavier dot fills the room above the stem that
+# tells i from l. The ball terminals do take the drop: as drops they read
+# a little better (i/j, f/j -0.005 to -0.008) and nothing got worse.
+def DOT(x=575, y=1285):
+    return path(('M', (x - 18, y - 18)), ('L', (x + 18, y + 18)))
+
 def BALLAT(x, y, r=26):
-    return path(('M', (x - r, y - r)), ('L', (x + r, y + r)))
+    return GOTA(x, y, r)
 
 # The plate's ascender ends in a small ball under the curl; drawn as a dab.
 BALL = lambda x: path(('M', (x + 196, A - 182)), ('L', (x + 230, A - 150)))
@@ -150,7 +168,7 @@ def strokes_dotlessj():
                  ('C', (240, D), (190, -310), (185, -250))), BALLAT(188, -240)]
 
 def strokes_j():
-    return strokes_dotlessj() + [path(('M', (557, 1267)), ('L', (593, 1303)))]
+    return strokes_dotlessj() + [DOT()]
 
 def strokes_k():
     stem = path(*ASC(330), ('L', (330, 40)))
@@ -168,10 +186,13 @@ def strokes_l():
                  ('C', (810, 65), (860, 120), (885, 190)))]
 
 def strokes_m():
-    # Três hastes na mesma célula: o m é a única letra que não pode estreitar.
-    first = path(*ENTRY(250, T), ('L', (250, 40)))
-    arch1 = path(('M', (250, 640)), ('C', (300, 890), (380, T), (450, T)), ('C', (560, T), (600, 880), (600, 700)), ('L', (600, 40)))
-    arch2 = path(('M', (600, 640)), ('C', (650, 890), (730, T), (800, T)), ('C', (910, T), (950, 880), (950, 700)), *EXIT(950))
+    # Três hastes na mesma célula. Hastes em 300/600/900 (eram 250/600/950):
+    # mm, mw, ww eram os pares mais apertados da fonte (6.5 px a 40 px contra
+    # 14 de média), e o texture healing não alcança largo-com-largo. Medido:
+    # variação do espaçamento 0.252 -> 0.232, nenhum par pior.
+    first = path(*ENTRY(300, T), ('L', (300, 40)))
+    arch1 = path(('M', (300, 640)), ('C', (345, 890), (405, T), (465, T)), ('C', (562, T), (600, 880), (600, 700)), ('L', (600, 40)))
+    arch2 = path(('M', (600, 640)), ('C', (645, 890), (705, T), (765, T)), ('C', (862, T), (900, 880), (900, 700)), *EXIT(900))
     return [first, arch1, arch2]
 
 def strokes_p():
@@ -202,10 +223,11 @@ def strokes_v():
                  ('C', (700, 260), (860, 560), (900, 800)), ('C', (910, 880), (890, 940), (850, 975)))]
 
 def strokes_w():
-    left = path(*ENTRY(250, T), ('L', (250, 400)), ('C', (250, 190), (320, B), (410, B)),
-                ('C', (520, B), (600, 180), (600, 420)), ('L', (600, 760)))
-    right = path(('M', (600, 420)), ('C', (600, 190), (680, B), (780, B)), ('C', (900, B), (980, 280), (980, 650)),
-                 ('C', (980, 820), (960, 900), (920, 960)))
+    # Mais estreito pelo mesmo motivo do m (pares largo-com-largo).
+    left = path(*ENTRY(300, T), ('L', (300, 400)), ('C', (300, 190), (355, B), (435, B)),
+                ('C', (528, B), (600, 180), (600, 420)), ('L', (600, 760)))
+    right = path(('M', (600, 420)), ('C', (600, 190), (672, B), (760, B)), ('C', (865, B), (930, 280), (930, 650)),
+                 ('C', (930, 820), (913, 900), (878, 960)))
     return [left, right]
 
 def strokes_x():

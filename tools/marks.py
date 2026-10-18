@@ -2,7 +2,7 @@
 above-marks sit on top of it, below-marks hang from it. They go through the
 same slant and the same nib as the letters, so a tilde is a pen wave, not a
 pasted shape."""
-from pen import path
+from pen import path, DOT
 
 def _above(*strokes): return ('above', list(strokes))
 def _below(*strokes): return ('below', list(strokes))
@@ -15,8 +15,8 @@ MARKS = {
                        ('C', (100, 0), (190, 5), (270, 115)))),
     0x304: _above(path(('M', (-210, 80)), ('L', (210, 80)))),                                   # macron
     0x306: _above(path(('M', (-175, 180)), ('C', (-150, 10), (150, 10), (175, 180)))),          # breve
-    0x307: _above(path(('M', (-18, 58)), ('L', (18, 94)))),                                    # dot above
-    0x308: _above(path(('M', (-178, 58)), ('L', (-142, 94))), path(('M', (142, 58)), ('L', (178, 94)))),  # dieresis
+    0x307: _above(DOT(0, 76)),                                    # dot above
+    0x308: _above(DOT(-160, 76), DOT(160, 76)),  # dieresis
     0x309: _above(path(('M', (-80, 160)), ('C', (-40, 230), (110, 220), (90, 130)),             # hook above
                        ('C', (80, 80), (20, 70), (10, 20)))),
     0x30A: _above(path(('M', (0, 30)), ('C', (90, 30), (110, 210), (0, 210)),                   # ring

@@ -2,3 +2,4 @@ fonttools>=4.50
 shapely>=2.0
 numpy>=1.26
 pillow>=10
+afdko>=4.0        # otfautohint (hinting); optional: without it the fonts build unhinted

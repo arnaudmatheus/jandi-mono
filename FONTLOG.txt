@@ -10,11 +10,14 @@ one fixed angle, while Radon's vertical metrics, symbols, box drawing and
 OpenType features are kept. Braille is only in the NF builds (upstream Radon
 has none).
 
-Four families are built from the same sources:
+Six families are built from the same sources:
 - Jandi Mono         Regular, Bold, Italic, Bold Italic (cell 1160)
 - Jandi Mono NF      the same, plus Nerd Fonts icons
 - Jandi Mono Wide    the same letters in a 1320 cell, for extra-wide spacing
 - Jandi Mono Wide NF the same, plus Nerd Fonts icons
+- Jandi Mono Text    Regular and Italic, nib 8% wider (weight 450), for
+                     light backgrounds and low-density screens
+- Jandi Mono Text NF the same, plus Nerd Fonts icons
 
 Released under the SIL Open Font License 1.1 (see OFL.txt). Following the
 OFL, it does not use the Reserved Font Names of the original ("Monaspace",
@@ -22,6 +25,25 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+0.7.0 (2026-10-17): outline quality and the Text weight
+- Curves: the pen's polygon outlines are fitted back into cubic Béziers
+  (tools/fitcurves.py, Schneider 1990), corners kept sharp, within about
+  1 unit of the pen shape. Letters average 26 segments instead of 55
+  (Radon 18).
+- Hinting with AFDKO's otfautohint, with alignment zones measured on each
+  style's ink. i l j q 1 (and t f in the italics) stay unhinted, with their
+  families: hinted, they made narrow pairs more alike. Sharpness at 12 px
+  0.136 -> 0.157 (Regular), 0.127 -> 0.165 (Italic); Radon 0.158.
+- m and w narrowed (stems 300/600/900): mm mw ww were the tightest pairs.
+- Ball terminals are now the punctuation's drop (gota). The dots of i j
+  and the diacritics stay dabs: as drops they made i/l worse.
+- Jandi Mono Text and Text NF: Regular and Italic with the nib 8% wider,
+  weight 450; stems +8%, thinnest stroke 0.98 px at 12 px.
+- Measured against 0.6.0: no confusable pair worse in Regular, Italic or
+  Wide; spacing CV 0.239 Regular, 0.256 Italic, 0.196 Wide (Radon 0.267).
+- New specimen (docs/specimen.png, tools/specimen.sh) with Figueiredo's
+  plate nº 7; build.sh runs at most JOBS processes at once (default 4).
+
 0.6.0 (2026-10-17): pen punctuation and ligatures
 - Punctuation drawn with the pen (tools/punct.py): . , : ; ' " ! ? ( ) [ ] { }.
   Their unit is the drop (gota). The comma is a smaller drop with a long

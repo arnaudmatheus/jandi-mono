@@ -23,7 +23,7 @@ def foot(x, w=95):
     return bar(x - w, x + w, FB)
 
 def BALL(x, y, r=26):
-    return path(('M', (x - r, y - r)), ('L', (x + r, y + r)))
+    return pen.BALLAT(x, y, r)
 
 def C_curve(end_cmds=()):
     return path(('M', (930, 1180)), ('C', (880, 1330), (760, CT), (640, CT)), ('C', (420, CT), (310, 1100), (310, 720)),
