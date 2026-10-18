@@ -6,20 +6,30 @@ import math
 from fontTools.pens.boundsPen import BoundsPen
 
 
+# Windows clipping metrics, the same for every family and style:
+# fontbakery wants them equal across a family and covering its tallest and
+# deepest glyph, and each font is built on its own (in CI, on separate
+# runners), so they are constants. The extremes today are Radon's Vietnamese
+# Ể texture-healing variants (2251 in Bold) and an alternate ļ (-770 in
+# Bold), the same in every family; the constants leave a small margin.
+WIN_ASCENT, WIN_DESCENT = 2300, 800
+
+
 def win_metrics(font):
-    """usWinAscent/usWinDescent cover every glyph: Windows clips anything
-    outside them (stacked Pinyin capitals, ornaments, icons). Linux line
-    spacing comes from hhea and OS/2 typo metrics, which stay as they are."""
+    """usWinAscent/usWinDescent from the family constants. Windows clips
+    anything outside them, so a glyph that reaches past them fails the
+    build instead of clipping in silence (raise the constants then).
+    Linux line spacing comes from hhea and OS/2 typo metrics, untouched."""
     gs = font.getGlyphSet()
-    y_min, y_max = 0, 0
+    worst = []
     for name in font.getGlyphOrder():
         bp = BoundsPen(gs)
         gs[name].draw(bp)
-        if bp.bounds:
-            y_min, y_max = min(y_min, bp.bounds[1]), max(y_max, bp.bounds[3])
-    os2 = font['OS/2']
-    os2.usWinAscent = max(os2.usWinAscent, math.ceil(y_max))
-    os2.usWinDescent = max(os2.usWinDescent, math.ceil(-y_min))
+        if bp.bounds and (bp.bounds[3] > WIN_ASCENT or bp.bounds[1] < -WIN_DESCENT):
+            worst.append((name, round(bp.bounds[1]), round(bp.bounds[3])))
+    if worst:
+        raise SystemExit(f"glyphs past the win metrics ({WIN_ASCENT}/-{WIN_DESCENT}): {worst[:8]}")
+    font['OS/2'].usWinAscent, font['OS/2'].usWinDescent = WIN_ASCENT, WIN_DESCENT
 
 
 def version(font, semver):
