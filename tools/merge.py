@@ -554,20 +554,25 @@ for rec in list(name.names):
 PSSTYLE = style.replace(' ', '')
 for nid, val in {1: FAMILY, 2: style, 3: f"{VERSION};{PS}-{PSSTYLE}", 4: f"{FAMILY} {style}", 6: f"{PS}-{PSSTYLE}", 18: f"{FAMILY} {style}", 19: "fogão · ñe'ẽ · yandï'pawa"}.items():
     name.setName(val, nid, 3, 1, 0x409)
-    if val.isascii():                     # Mac Roman can't hold ẽ / ï
-        name.setName(val, nid, 1, 0, 0)
 old = name.getDebugName(0) or ""
 name.setName((old + " " if old else "") + "Jandí Mono lowercase and marks: Copyright (c) 2026 arnaudmatheus.", 0, 3, 1, 0x409)
-name.setName(f"Version {VERSION}; derived from Monaspace Radon 1.400", 5, 3, 1, 0x409)
+import finish
+REV = finish.version(font, VERSION)
+name.setName(f"Version {REV}; Jandi Mono {VERSION}; derived from Monaspace Radon 1.400", 5, 3, 1, 0x409)
 name.setName("Monaspace Radon's cursive rewritten with a fixed-angle Renaissance broad nib, for the Jandí theme.", 10, 3, 1, 0x409)
 cff.fontNames = [f"{PS}-{PSSTYLE}"]
 td.FullName = f"{FAMILY} {style}"; td.FamilyName = FAMILY
 if 'Italic' in style:
     font['post'].italicAngle = -float(STYLES[style]['slant'])
 font['OS/2'].fsType = 0
+finish.caret(font, STYLES[style]['slant'] if 'Italic' in style else 0)
+finish.stat(font, 450 if TEXT else (700 if 'Bold' in style else 400), 'Italic' in style,
+            "Text" if TEXT else ("Bold" if 'Bold' in style else "Regular"))
 if TEXT:
     font['OS/2'].usWeightClass = 450
 font['OS/2'].sxHeight = XH_NEW
 font['OS/2'].xAvgCharWidth = CELL
+finish.win_metrics(font)
+finish.no_mac_names(font)
 font.save(out)
 print(f"{out}: replaced {len(done)} glyphs ({len(placed)} base, {len(mark_anchor)} marks), {len(pen_glyphs)} punctuation/symbols/ligatures")

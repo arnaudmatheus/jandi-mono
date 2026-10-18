@@ -38,12 +38,14 @@ r feat "<span font=\"Jandi Mono 46px\">bdhk  cfjry  FHKMNPRT  {([])}  -&gt; =&gt
 r featcap "<span font=\"Jandi Mono 19px\" foreground=\"$MUTED\">hooked ascenders · drops (gota) · lapidary feet · the carved C-scroll · ligatures, on by default</span>"
 r orn "<span font=\"Jandi Mono 46px\" foreground=\"$GOLD\">❦ ❨ 1722 ❩ 🙘 ❰ SANCTUS ❱ ☙  </span><span font=\"Jandi Mono 46px\" font_features=\"titl\">OURO</span><span font=\"Jandi Mono 46px\">  </span><span font=\"Jandi Mono 46px\" font_features=\"swsh\" foreground=\"$URU\">P</span><span font=\"Jandi Mono 46px\" foreground=\"$URU\">reto</span>"
 r orncap "<span font=\"Jandi Mono 19px\" foreground=\"$MUTED\">opt-in ornament: florões, cartelas, ribbon ends; carved capitals (titl) and Figueiredo's flourish (swsh)</span>"
+sw() { printf '<span font="Jandi Mono NF 34px" foreground="%s">██</span><span font="Jandi Mono 21px" foreground="%s"> %s  </span>' "$1" "$MUTED" "$2"; }
+r palette "$(sw '#7097C2' 'azulejo cobalt ~ Jandí blue')$(sw '#D9773A' "Ataíde's red ~ urucum")$(sw '#D4B26A' 'talha gold ~ jenipapo pulp')"
 r lang "<span font=\"Jandi Mono 30px\">fogão · ñe'ẽ · g̃ ỹ ĩ · tiếng việt · lǘsè · ďábel · Ąę</span>"
 r fam "<span font=\"Jandi Mono 26px\">Jandi Mono</span><span font=\"Jandi Mono 26px\" foreground=\"$MUTED\">   ·   </span><span font=\"Jandi Mono Wide 26px\">Jandi Mono Wide</span><span font=\"Jandi Mono 26px\" foreground=\"$MUTED\">   ·   </span><span font=\"Jandi Mono Text 26px\">Jandi Mono Text</span>"
 ICONS=$(printf '\uf1eb  \uf240  \uf293  \uf120  \uf303  \uf07b  \uf418  \ue7c5  \ue0b0\ue0b2  ▁▂▃▄▅▆▇█  ⣿⣶⣤⣀  ┌─┬─┐')
 r icons "<span font=\"Jandi Mono NF 30px\" foreground=\"$URU\">$ICONS</span>"
 magick $(pad 70) $D/p/title.png $(pad 14) $D/p/sub.png $(pad 56) $D/p/plate.png $(pad 8) $D/p/platecap.png $(pad 18) $D/p/corsiva.png $(pad 6) $D/p/corsivacap.png \
-  $(pad 40) $D/p/quote.png $(pad 48) $D/p/code.png $(pad 44) $D/p/feat.png $(pad 8) $D/p/featcap.png $(pad 40) $D/p/orn.png $(pad 8) $D/p/orncap.png $(pad 36) $D/p/lang.png \
+  $(pad 40) $D/p/quote.png $(pad 48) $D/p/code.png $(pad 44) $D/p/feat.png $(pad 8) $D/p/featcap.png $(pad 40) $D/p/orn.png $(pad 8) $D/p/orncap.png $(pad 34) $D/p/palette.png $(pad 30) $D/p/lang.png \
   $(pad 28) $D/p/fam.png $(pad 26) $D/p/icons.png $(pad 70) -append $D/p/all.png
 magick $D/p/all.png -bordercolor "$BG" -border 1 -fuzz 2% -trim +repage -bordercolor "$BG" -border 64x64 $J/docs/specimen.png
 magick identify $J/docs/specimen.png

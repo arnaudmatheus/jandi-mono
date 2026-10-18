@@ -76,5 +76,7 @@ for rec in list(name.names):
             name.setName(s.replace(FAM, FAM + ' NF'), rec.nameID, rec.platformID, rec.platEncID, rec.langID)
 cff.fontNames = [cff.fontNames[0].replace(PSFAM + '-', PSFAM + 'NF-')]
 td.FullName = td.FullName.replace(FAM, FAM + ' NF'); td.FamilyName = FAM + ' NF'
+import finish
+finish.win_metrics(font)   # the icons reach past the letters' bounds
 font.save(out)
 print(f"{out}: +{len(added)} icon glyphs, {sum(len(v) for v in added.values())} codepoints")

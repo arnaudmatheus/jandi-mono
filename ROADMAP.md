@@ -356,18 +356,43 @@ descent.
   1. Derive Wide from the normal family instead of drawing it twice.
   2. A per-glyph cache, keyed on skeleton, nib, slant and cell.
 
-### 1.0.0: validation and release
+### 1.0.0: validation and release (in progress)
 
-- **Reading-speed self-test** page: timed passages in Jandí Mono, Wide, Text
-  and Radon. The best font differs per reader (Wallace et al. 2022), so
-  measure the user's own fit.
-- **fontbakery** QA: OFL metadata, names, vertical metrics, monospace checks.
-- **Specimen** as a Baroque *folha*: the palette bridge (cobalt, urucum, gold),
-  the capitulares and florões in use, and credits to Figueiredo and the Minas
-  sources.
-- README reading-size guidance: an x-height of at least 0.2° means ≥ 15 pt on
-  the laptop for long reading.
-- Omarchy: `omarchy font set "Jandi Mono NF"`.
+- **Reading-speed self-test ✅ built**:
+  [Jandí Reading Test](https://claude.ai/artifact/XDD6j8zVNS581xVPPGP3Lz).
+  - Eight passages in Portuguese, two per font: Jandi Mono, Wide, Text and
+    Radon.
+  - Fonts shown blind as A–D in a shuffled order, with no font twice in a
+    row.
+  - A comprehension question after each passage. Speed counts only passages
+    answered correctly.
+  - Sessions are saved, so results average across days. The best font
+    differs per reader (Wallace et al. 2022), so the user's own results
+    decide 1.0's default.
+  - **Waiting on the user's sessions.**
+- **fontbakery ✅** (pinned 1.1.0, CI `qa` job, every family). Fixed:
+  - the font revision now agrees with the name table;
+  - Windows clipping metrics cover every glyph;
+  - a STAT table, with each static font naming only its own weight and
+    italic;
+  - the italic caret slope;
+  - no legacy Mac name records.
+
+  Two checks are excluded, with reasons in the workflow:
+  - `case_mapping`: about 15 African-language lowercase letters inherited
+    from Radon have no capitals, and Radon fails it too;
+  - `opentype/monospace`: it crashes on CFF fonts, a fontbakery bug.
+- **Specimen ✅**: a Baroque *folha* (`tools/specimen.sh`) with Figueiredo's
+  plate nº 7 and the ornament. Its palette bridge: azulejo cobalt to Jandí
+  blue, Ataíde's red to urucum, gilded *talha* to jenipapo pulp. Earlier
+  drafts said "Casulla gold", but Casulla is another theme; Jandí's own
+  yellow is the right pair.
+- **Reading-size guidance ✅** in the README, with a table per screen.
+- **Omarchy ✅**: already the system font (`omarchy font set "Jandi Mono
+  NF"`) and Ghostty's.
+
+After 1.0: draw the African-language capitals Radon lacks (`Ɓ Ɗ Ɛ Ɔ Ƈ Ƙ`…),
+so `case_mapping` can be checked too.
 
 ---
 

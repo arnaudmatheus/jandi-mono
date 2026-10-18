@@ -113,6 +113,27 @@ is our own reading of the Luso-Brazilian Baroque and the *rococó mineiro*.
 Michelangelus is not a source of this font: no outlines, measurements or data
 from it were ever used, which its licence forbids.
 
+## Reading size
+
+Reading slows down sharply once the x-height drops below about 0.2° of
+visual angle, the critical print size (Legge & Bigelow, 2011). What that
+means in points depends on the screen and how far you sit from it:
+
+| Screen | Distance | x-height at 12 pt | Read long text at |
+|---|---|---|---|
+| 24–27" monitor, ~97 PPI | 60 cm | 0.216° | 12 pt or more |
+| Laptop, ~197 PPI at 1.25× scaling | 50 cm | 0.160° | 15 pt or more |
+
+For code that you scan rather than read, smaller is fine. For notes, docs
+and long comments, stay above the line. `docs/metrics.md` has the visual
+angle for each release.
+
+To find the face you read fastest in, use the
+[reading test](https://claude.ai/artifact/XDD6j8zVNS581xVPPGP3Lz): blind,
+counterbalanced passages in Jandi Mono, Wide, Text and Radon, with a
+comprehension check on each. The link opens only for people it's been
+shared with.
+
 ## Ornament (opt-in)
 
 Nothing here appears in normal text. Type the characters, or ask for the
@@ -171,7 +192,9 @@ fonts build unhinted.
 
 Every push and pull request is built on GitHub Actions
 (`.github/workflows/build.yml`), in five parallel jobs of two fonts each,
-and checked by `tools/check.py`. The job
+and checked two ways in parallel. `tools/check.py` is the legibility gate,
+and fontbakery's universal profile (pinned in `requirements-qa.txt`) checks
+OpenType conformance, names and metrics. The job
 fails if any easily confused pair got more than 0.01 worse than the fonts
 committed before the change, the rule every release has followed. The
 fonts and the report are kept with each run. Pushing a tag `v<version>`
