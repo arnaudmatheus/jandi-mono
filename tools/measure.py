@@ -19,15 +19,23 @@ Similarity = best normalised correlation over ±1–2 px shifts, after a slight
 blur (the eye never sees a single pixel); 1.0 means identical images.
 """
 
-import argparse, json, math, os, subprocess, tempfile, html
+import argparse
+import html
+import json
+import math
+import os
+import subprocess
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
-import numpy as np
-from PIL import Image
-from fontTools.ttLib import TTFont
-from metric_types import FontMetrics, Spacing
-from metrics_report import metrics_markdown
-from pathlib import Path
 from functools import partial
+from pathlib import Path
+
+import numpy as np
+from fontTools.ttLib import TTFont
+from PIL import Image
+
+from metric_types import FontMetrics, RomanItalic, Spacing, VisualAngle
+from metrics_report import metrics_markdown
 
 CONFUSABLE = [
     ("e", "c"),
@@ -75,7 +83,7 @@ SETUPS = [
 class Renderer:
     """One isolated fontconfig per font file."""
 
-    def __init__(self, path):
+    def __init__(self, path: str) -> None:
         self.path = os.path.abspath(path)
         self.dir = tempfile.mkdtemp(prefix="jm-measure-")
         os.symlink(self.path, os.path.join(self.dir, os.path.basename(self.path)))
@@ -83,9 +91,9 @@ class Renderer:
         self.family = t["name"].getDebugName(16) or t["name"].getDebugName(1)
         self.style = t["name"].getDebugName(17) or t["name"].getDebugName(2)
         self.xh = t["OS/2"].sxHeight / t["head"].unitsPerEm
-        self.conf = {}
+        self.conf: dict[str, str] = {}
 
-    def _conf(self, hint):
+    def _conf(self, hint: str) -> str:
         if hint not in self.conf:
             p = os.path.join(self.dir, f"fc-{hint}.conf")
             open(p, "w").write(
@@ -127,13 +135,13 @@ class Renderer:
             )
             return np.asarray(Image.open(out).convert("RGB"), dtype=np.float32) / 255.0
 
-    def char(self, ch, px, hint="hintslight"):
+    def char(self, ch: str, px: int, hint: str = "hintslight") -> np.ndarray:
         return self.render(
             f'<span foreground="#FFFFFF">{html.escape(ch)}</span>', px, hint
         )[:, :, 0]
 
 
-def blur(a):
+def blur(a: np.ndarray) -> np.ndarray:
     k = np.array([1, 2, 1], np.float32) / 4
     a = np.apply_along_axis(lambda r: np.convolve(r, k, "same"), 1, a)
     return np.apply_along_axis(lambda c: np.convolve(c, k, "same"), 0, a)
@@ -159,8 +167,8 @@ def similarity(a: np.ndarray, b: np.ndarray, shift: int) -> float:
     return best
 
 
-def confusability(r):
-    out = {}
+def confusability(r: Renderer) -> dict[int | str, dict[str, float]]:
+    out: dict[int | str, dict[str, float]] = {}
     for px in SIZES:
         chars = sorted({c for p in CONFUSABLE for c in p})
         with ThreadPoolExecutor(8) as ex:
@@ -202,7 +210,7 @@ def spacing(r: Renderer, px: int = 40) -> Spacing:
     }
 
 
-def roman_italic(rr, ri, px=15):
+def roman_italic(rr: Renderer, ri: Renderer, px: int = 15) -> RomanItalic:
     letters = "abcdefghijklmnopqrstuvwxyz"
     with ThreadPoolExecutor(8) as ex:
         R = list(ex.map(lambda c: rr.char(c, px), letters))
@@ -211,8 +219,8 @@ def roman_italic(rr, ri, px=15):
     return {"mean": round(float(np.mean(list(per.values()))), 3), "per_letter": per}
 
 
-def visual_angle(r, pt=12):
-    out = {}
+def visual_angle(r: Renderer, pt: float = 12) -> dict[str, VisualAngle]:
+    out: dict[str, VisualAngle] = {}
     for name, ppi, scale, dist in SETUPS:
         px = pt * 96 / 72 * scale
         mm = r.xh * px / ppi * 25.4
@@ -223,9 +231,9 @@ def visual_angle(r, pt=12):
     return out
 
 
-def sharpness(r):
+def sharpness(r: Renderer) -> dict[str, float]:
     text = "fn parse(raw: &amp;str) -&gt; Option&lt;Entry&gt; // não é fungo · summary 2026"
-    out = {}
+    out: dict[str, float] = {}
     for hint in ("hintslight", "hintnone"):
         g = r.render(f'<span foreground="#FFFFFF">{text}</span>', 12, hint)[:, :, 0]
         ink = g[g > 0.1]

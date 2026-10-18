@@ -43,7 +43,7 @@ def _copy_missing_icons(font: TTFont, icons: TTFont) -> dict[str, list[int]]:
     cmap = font.getBestCmap()
     glyphs = icons.getGlyphSet()
     have = set(font.getGlyphOrder())
-    added = {}
+    added: dict[str, list[int]] = {}
     for cp, gname in sorted(icons.getBestCmap().items()):
         if cp in cmap:
             continue

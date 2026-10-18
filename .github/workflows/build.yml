@@ -8,7 +8,7 @@
 #   fonts and the report are kept as the run's artifact.
 # - qa: fontbakery's universal profile on every family (OpenType conformance,
 #   names, metrics, Unicode), in parallel with check.
-# - test: black --check and pytest on the build code (CLAUDE.md), in
+# - test: black --check, mypy and pytest on the build code (CLAUDE.md), in
 #   parallel with the builds.
 # - release: a tag v<version> publishes a GitHub Release with the fonts
 #   zipped, once test, check and qa pass and the tag matches VERSION in
@@ -50,6 +50,9 @@ jobs:
 
       - name: Formatting
         run: black --check tools tests
+
+      - name: Types
+        run: mypy
 
       - name: Tests
         run: pytest

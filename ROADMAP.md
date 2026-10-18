@@ -367,10 +367,19 @@ and a refactor must not move them.
    82 tests; all ten unhinted fonts, NF output tables and hint exclusions
    match the previous code (only font timestamps/checksums are ignored).
    [Validation notes](docs/code-health-step4.md).
-5. **Explicit types** on every function: done for the new modules
-   (`pen_types.py`: Point, Stroke, StrokesFn, Bounds, GlyphSet). Left: the
-   drawing modules (letters, corsiva, caps, ornament, punct, marks), pen,
-   fitcurves, finish, measure, check.
+5. **Explicit types ✅** Every function in `tools/` is annotated, and mypy
+   checks it in CI (`disallow_untyped_defs`; fontTools and shapely imports
+   are untyped). Shared names: `pen_types.py` (Point, Stroke, StrokesFn,
+   PathCmd, Bounds, GlyphSet, Cubic, Segment), `ornament.NibStroke` and
+   `Motif`, `marks.Mark`, `punct.DrawnPunct`, `build_options.Style`. mypy
+   found three real gaps, now handled: `GlyphWriter.bounds()` could return
+   None for an empty glyph and texture healing and the punctuation
+   placement unpacked it blind (it now raises, naming the glyph); and two
+   result tables in `check.py` were typed too narrowly. Named lambdas became
+   functions, and the florões table uses `functools.partial`. `RASGO` lost
+   an unused parameter. The tests are not type-checked yet: their fake
+   renderers need a `Renderer` protocol in `measure.py`, which belongs with
+   step 6. All ten fonts byte-identical.
 6. **Dependencies injected**: pass the pen settings (nib, slant, cell) as a
    value instead of setting `pen.SLANT`, `pen.ADV` and `pen.OPTICAL` as
    module globals, and stop merging the corsiva into `letters.LETTERS` in

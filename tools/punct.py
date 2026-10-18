@@ -17,18 +17,20 @@ Both are sheared from Radon's angle (Regular 0°, Italic 11°) to Jandí's
 (7°, 13°) around the math axis, so a bar across two cells stays one bar."""
 
 import math
+from collections.abc import Callable
+
 import numpy as np
 import shapely
-from shapely.geometry import MultiPoint, Point, MultiLineString
-from shapely.geometry.base import BaseGeometry
-from shapely.ops import voronoi_diagram, linemerge
-from pen_types import Stroke, Point as XY
 from fontTools.pens.basePen import BasePen
-from shapely.geometry import Polygon
-from shapely.ops import unary_union
 from shapely import affinity
+from shapely.geometry import LineString, MultiLineString, MultiPoint, Point, Polygon
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import linemerge, unary_union, voronoi_diagram
+
 import pen
 from pen import path
+from pen_types import GlyphSet, PathCmd, Stroke
+from pen_types import Point as XY
 
 AXIS = 646  # Radon's math axis: the middle of = and -
 
@@ -36,7 +38,7 @@ AXIS = 646  # Radon's math axis: the middle of = and -
 DROP_R = 112  # body radius of the drop: Radon-sized code punctuation
 
 
-def DROP(x, y, r=DROP_R):
+def DROP(x: float, y: float, r: float = DROP_R) -> list[PathCmd]:
     """A teardrop: a small loop swept by the nib and filled, its point up and
     to the right along the pen angle. r sets the size of the round body."""
     tip = (x + 0.75 * r, y + 1.15 * r)
@@ -54,7 +56,9 @@ def DROP(x, y, r=DROP_R):
     ]
 
 
-def drop_shape(x, y, w, t, r=DROP_R):
+def drop_shape(
+    x: float, y: float, w: float, t: float, r: float = DROP_R
+) -> BaseGeometry:
     """The drop as ink: the swept loop plus its filled body."""
     pts = pen.slant(path(*DROP(x, y, r)))
     return unary_union([pen.sweep(pts, w, t), Polygon(pts).buffer(0)])
@@ -71,7 +75,7 @@ COMMA_HEAD = 0.75  # the comma's head is a smaller drop than the period
 COLON_R = 0.85  # : and ; dots, a little under the period's drop
 
 
-def _comma_tail(y, r=DROP_R):
+def _comma_tail(y: float, r: float = DROP_R) -> Stroke:
     # Out of the head's lower right, straight down while the nib is at full
     # width, turning left only at the end, where it thins to a hairline. The
     # tail is what tells , from . and ; from :, so it is long, like Radon's.
@@ -89,7 +93,9 @@ def _comma_tail(y, r=DROP_R):
     )
 
 
-DRAWN = {
+# A drawn mark: its strokes, and the centres of its drops.
+DrawnPunct = tuple[list[Stroke], list[XY]]
+DRAWN: dict[str, Callable[[], DrawnPunct]] = {
     "period": lambda: ([], [(0, BASE)]),
     "comma": lambda: ([_comma_tail(BASE)], [(0, BASE)]),
     "colon": lambda: ([], [(0, BASE), (0, XDOT)]),
@@ -196,12 +202,12 @@ DRAWN = {
 }
 
 
-def drawn_shape(name, w, t):
+def drawn_shape(name: str, w: float, t: float) -> BaseGeometry:
     strokes, drops = DRAWN[name]()
     parts = [pen.sweep(pen.slant(s), w, t) for s in strokes]
     colon_r = COLON_R * DROP_R
 
-    def r_for(y):
+    def r_for(y: float) -> float:
         if name == "comma" or (name == "semicolon" and y == BASE):
             return COMMA_HEAD * (colon_r if name == "semicolon" else DROP_R)
         return colon_r if name in ("colon", "semicolon") else DROP_R
@@ -214,18 +220,18 @@ def drawn_shape(name, w, t):
 class _Flatten(BasePen):
     """CFF outline -> list of point rings (cubics flattened)."""
 
-    def __init__(self, gs):
+    def __init__(self, gs: GlyphSet) -> None:
         super().__init__(gs)
-        self.rings = []
-        self.cur = []
+        self.rings: list[Stroke] = []
+        self.cur: Stroke = []
 
-    def _moveTo(self, p):
+    def _moveTo(self, p: XY) -> None:
         self.cur = [p]
 
-    def _lineTo(self, p):
+    def _lineTo(self, p: XY) -> None:
         self.cur.append(p)
 
-    def _curveToOne(self, a, b, c):
+    def _curveToOne(self, a: XY, b: XY, c: XY) -> None:
         p0 = self.cur[-1]
         for i in range(1, 13):
             s = i / 12
@@ -243,7 +249,7 @@ class _Flatten(BasePen):
                 )
             )
 
-    def _closePath(self):
+    def _closePath(self) -> None:
         if len(self.cur) > 2:
             self.rings.append(self.cur)
         self.cur = []
@@ -251,13 +257,14 @@ class _Flatten(BasePen):
     _endPath = _closePath
 
 
-def outline(gs, name):
+def outline(gs: GlyphSet, name: str) -> BaseGeometry:
     """Nonzero winding, as the font is drawn: counter-clockwise contours are
     ink, clockwise ones are holes. Radon overlaps its contours (the bars of #
     and *, the stroke through !=), which even-odd would punch out."""
     f = _Flatten(gs)
     gs[name].draw(f)
-    ink, holes = [], []
+    ink: list[BaseGeometry] = []
+    holes: list[BaseGeometry] = []
     for ring in f.rings:
         poly = Polygon(ring)
         if len(ring) < 3 or poly.area == 0:
@@ -272,14 +279,14 @@ def outline(gs, name):
     return unary_union([unary_union(ink).difference(cut)] + islands)
 
 
-def _polygons(geom):
+def _polygons(geom: BaseGeometry) -> list[Polygon]:
     """Every polygon inside any shapely geometry (thinning can leave lines too)."""
     if geom.geom_type == "Polygon":
         return [] if geom.is_empty else [geom]
     return [p for g in getattr(geom, "geoms", []) for p in _polygons(g)]
 
 
-def _is_dot(g):
+def _is_dot(g: Polygon) -> bool:
     minx, miny, maxx, maxy = g.bounds
     w, h = maxx - minx, maxy - miny
     return (
@@ -289,7 +296,7 @@ def _is_dot(g):
     )
 
 
-def _inscribed(g):
+def _inscribed(g: Polygon) -> float:
     lo, hi = 0.0, 400.0
     for _ in range(14):
         mid = (lo + hi) / 2
@@ -297,12 +304,10 @@ def _inscribed(g):
     return lo
 
 
-def stroke_width(gs, name="hyphen"):
+def stroke_width(gs: GlyphSet, name: str = "hyphen") -> float:
     """Radon is monoline: its hyphen's thickness is the stroke of every symbol."""
     s = outline(gs, name)
     minx, miny, maxx, maxy = s.bounds
-    from shapely.geometry import LineString
-
     return s.intersection(
         LineString([((minx + maxx) / 2, miny - 10), ((minx + maxx) / 2, maxy + 10)])
     ).length
@@ -341,7 +346,7 @@ def _endpoint_key(point: XY) -> XY:
 
 
 def _endpoint_degrees(lines: list[Stroke]) -> dict[XY, int]:
-    degree = {}
+    degree: dict[XY, int] = {}
     for line in lines:
         for point in (line[0], line[-1]):
             key = _endpoint_key(point)
@@ -436,7 +441,7 @@ def restroke(
 
 
 # Code symbols restroked (plus their texture-healing and contextual variants).
-RESTROKE_BASES = {
+RESTROKE_BASES: set[str] = {
     "hyphen",
     "underscore",
     "slash",

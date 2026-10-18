@@ -55,7 +55,8 @@ def _font_spec(directory: Path, roman: str, italic: str | None) -> str:
 
 
 def _comparison_specs(base: Path, new: Path) -> tuple[list[str], list[FamilyPair]]:
-    specs, pairs = [], []
+    specs: list[str] = []
+    pairs: list[FamilyPair] = []
     for label, roman, italic in FAMILIES:
         if not (new / roman).exists():
             continue
@@ -136,7 +137,7 @@ def regression_report(
     lines = _report_heading(tolerance)
     failed = []
     for label, b, n in pairs:
-        if b is None:
+        if b is None or n is None:
             lines.append(f"| {label} | no baseline (new family) | | | skipped |")
             continue
         rb, rn = res[b], res[n]

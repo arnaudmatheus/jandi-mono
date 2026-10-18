@@ -3,6 +3,16 @@
 [tool.black]
 # The default line length; nothing else is configured (CLAUDE.md, Formatting).
 
+[tool.mypy]
+# The build code's type hints are checked (CLAUDE.md: explicit types).
+# fontTools and shapely ship few or no stubs, so their imports are Any.
+files = ["tools"]
+mypy_path = "tools"
+ignore_missing_imports = true
+# Every function must carry its types; CI fails on one that doesn't.
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["tools"]

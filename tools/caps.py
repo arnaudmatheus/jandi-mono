@@ -6,15 +6,18 @@ left stems open with the same hairline lead-in as the lowercase: the pen's
 serif. Figures are lining and tabular by construction: 1 carries a flag and a
 foot, 0 a pen-stroke slash, so neither can be read as l / I / O."""
 
+from collections.abc import Sequence
+
 import letters
 from letters import ENTRY, T, B, A, D, BOWL_R, ARCH
 from pen import path, ellipse
+from pen_types import PathCmd, Stroke, StrokesFn
 
 CT, CB, FB = 1385, 58, 75  # cap top, round bottom, flat bottom (skeleton)
 MID = 740
 
 
-def stem(x, top=CT, bot=FB, entry=True):
+def stem(x: float, top: float = CT, bot: float = FB, entry: bool = True) -> Stroke:
     return (
         path(*ENTRY(x, top), ("L", (x, bot)))
         if entry
@@ -22,21 +25,21 @@ def stem(x, top=CT, bot=FB, entry=True):
     )
 
 
-def bar(x0, x1, y):
+def bar(x0: float, x1: float, y: float) -> Stroke:
     return path(("M", (x0, y)), ("L", (x1, y)))
 
 
 # Lapidary foot: the serif a stonecutter leaves at the base of a stem, as in
 # the Latin capitals carved on Aleijadinho's Prophets (Congonhas, 1800–05).
-def foot(x, w=95):
+def foot(x: float, w: float = 95) -> Stroke:
     return bar(x - w, x + w, FB)
 
 
-def BALL(x, y, r=26):
-    return letters.BALLAT(x, y, r)
+# The ball terminal, the same drop as the lowercase's.
+BALL = letters.BALLAT
 
 
-def C_curve(end_cmds=()):
+def C_curve(end_cmds: Sequence[PathCmd] = ()) -> Stroke:
     return path(
         ("M", (930, 1180)),
         ("C", (880, 1330), (760, CT), (640, CT)),
@@ -46,7 +49,7 @@ def C_curve(end_cmds=()):
     )
 
 
-CAPS = {
+CAPS: dict[str, StrokesFn] = {
     "A": lambda: [
         path(("M", (300, FB)), ("L", (620, CT + 10)), ("L", (940, FB))),
         bar(420, 820, 500),
@@ -204,7 +207,7 @@ CAPS = {
     ],
 }
 
-FIGURES = {
+FIGURES: dict[str, StrokesFn] = {
     "zero": lambda: [
         ellipse(620, 720, 290, 662),
         path(("M", (450, 330)), ("L", (790, 1110))),
@@ -299,7 +302,7 @@ FIGURES = {
 }
 
 L = letters.LETTERS
-EXTRAS_LOWER = {
+EXTRAS_LOWER: dict[str, StrokesFn] = {
     "lslash": lambda: L["l"]() + [path(("M", (400, 600)), ("L", (740, 860)))],
     "dcroat": lambda: L["d"]() + [bar(740, 1060, 1250)],
     "hbar": lambda: L["h"]() + [bar(190, 480, 1250)],
@@ -370,7 +373,7 @@ EXTRAS_LOWER = {
     ],
 }
 
-EXTRAS_UPPER = {
+EXTRAS_UPPER: dict[str, StrokesFn] = {
     "Lslash": lambda: CAPS["L"]() + [path(("M", (200, 560)), ("L", (560, 860)))],
     "Dcroat": lambda: CAPS["D"]() + [bar(200, 520, MID)],
     "Eth": lambda: CAPS["D"]() + [bar(200, 520, MID)],

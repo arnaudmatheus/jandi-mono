@@ -6,12 +6,13 @@ the nib along them. The Italic replaces some of these with the corsiva
 """
 
 from pen import ellipse, path
+from pen_types import PathCmd, Stroke, StrokesFn
 
 # Skeleton vocabulary: stems at 330/905, x-height band 58..972
 T, B = 972, 58
 
 
-def strokes_a():
+def strokes_a() -> list[Stroke]:
     # B3: a narrower bowl, a notch where it meets the stem, and a long exit;
     # at 12 px the 0.2.0 a was nearly an o (similarity 0.979).
     bowl = path(
@@ -27,7 +28,7 @@ def strokes_a():
     return [bowl, stem]
 
 
-def strokes_e():
+def strokes_e() -> list[Stroke]:
     return [
         path(
             ("M", (330, 470)),
@@ -40,11 +41,11 @@ def strokes_e():
     ]
 
 
-def strokes_o():
+def strokes_o() -> list[Stroke]:
     return [ellipse(615, 515, 325, 457)]
 
 
-def strokes_n():
+def strokes_n() -> list[Stroke]:
     entry = path(("M", (240, 885)), ("L", (330, T)), ("L", (330, 40)))
     arch = path(
         ("M", (330, 760)),
@@ -56,7 +57,7 @@ def strokes_n():
     return [entry, arch]
 
 
-def strokes_u():
+def strokes_u() -> list[Stroke]:
     left = path(
         ("M", (240, 885)),
         ("L", (330, T)),
@@ -70,7 +71,7 @@ def strokes_u():
     return [left, stem]
 
 
-def strokes_y():
+def strokes_y() -> list[Stroke]:
     left = path(
         ("M", (240, 885)),
         ("L", (330, T)),
@@ -87,7 +88,7 @@ def strokes_y():
     return [left, stem, BALLAT(358, -232)]
 
 
-def strokes_g():
+def strokes_g() -> list[Stroke]:
     # Inspired by (not copied from) Michelangelo's signature: the descender
     # loops and closes in one gesture, crossing back over the stem.
     bowl = path(
@@ -108,7 +109,7 @@ def strokes_g():
     return [bowl, stem]
 
 
-def strokes_f():
+def strokes_f() -> list[Stroke]:
     # B3: a wide bar, a bigger top hook and a SHORT bottom hook: the j keeps
     # the big hook; at 12 px the two were nearly identical (0.887).
     hook = path(
@@ -123,7 +124,7 @@ def strokes_f():
     return [hook, bar, ball]
 
 
-def strokes_dotlessi():
+def strokes_dotlessi() -> list[Stroke]:
     return [
         path(
             ("M", (400, 865)),
@@ -134,33 +135,36 @@ def strokes_dotlessi():
     ]
 
 
-def strokes_idot():
+def strokes_idot() -> list[Stroke]:
     return strokes_dotlessi() + [DOT()]
 
 
 # Ascender/descender skeleton limits (outline lands ≈ at Radon's 1550 / −426).
 A, D = 1482, -360
+
+
 # The chancery lead-in.
-ENTRY = lambda x, top: [
-    ("M", (x - 90, top - 85)),
-    ("L", (x, top)),
-]
+def ENTRY(x: float, top: float) -> list[PathCmd]:
+    return [("M", (x - 90, top - 85)), ("L", (x, top))]
+
+
 # Ascender top after Figueiredo's calm hand (Nova Escola, plate nº 9): the
 # stroke starts with a small hook curling right, then comes down as the stem.
 # Used on b d h k. The Regular takes his forms but keeps the broad nib: his
 # pressure quill, measured on the Regular, cost legibility at 12 px (five
 # confusable pairs worse) and made it too close to the Italic — the quill is
 # the Italic's signature.
-ASC = lambda x: [
-    ("M", (x + 215, A - 175)),
-    ("C", (x + 250, A - 60), (x + 180, A + 25), (x + 95, A + 25)),
-    ("C", (x + 30, A + 25), (x, A - 30), (x, A - 110)),
-]
+def ASC(x: float) -> list[PathCmd]:
+    return [
+        ("M", (x + 215, A - 175)),
+        ("C", (x + 250, A - 60), (x + 180, A + 25), (x + 95, A + 25)),
+        ("C", (x + 30, A + 25), (x, A - 30), (x, A - 110)),
+    ]
 
 
 # Ball terminal — the signature of Baroque type (c. 1700–1760) and of the
 # ball under Figueiredo's ascender curl: a short dab of the same pen.
-def GOTA(x, y, r):
+def GOTA(x: float, y: float, r: float) -> Stroke:
     """The drop (gota): a small teardrop loop, point up and to the right along
     the pen angle. The same shape as the punctuation's drop (tools/punct.py);
     at these sizes the nib fills the loop by itself."""
@@ -184,31 +188,37 @@ def GOTA(x, y, r):
 # +0.047), since a rounder, heavier dot fills the room above the stem that
 # tells i from l. The ball terminals do take the drop: as drops they read
 # a little better (i/j, f/j -0.005 to -0.008) and nothing got worse.
-def DOT(x=575, y=1285):
+def DOT(x: float = 575, y: float = 1285) -> Stroke:
     return path(("M", (x - 18, y - 18)), ("L", (x + 18, y + 18)))
 
 
-def BALLAT(x, y, r=26):
+def BALLAT(x: float, y: float, r: float = 26) -> Stroke:
     return GOTA(x, y, r)
 
 
 # The plate's ascender ends in a small ball under the curl; drawn as a dab.
-BALL = lambda x: path(("M", (x + 196, A - 182)), ("L", (x + 230, A - 150)))
+def BALL(x: float) -> Stroke:
+    return path(("M", (x + 196, A - 182)), ("L", (x + 230, A - 150)))
+
+
 # The hairline exit flick.
-EXIT = lambda x: [
-    ("L", (x, 170)),
-    ("C", (x, 90), (x + 45, 55), (x + 125, 95)),
-]
-BOWL_R = [
+def EXIT(x: float) -> list[PathCmd]:
+    return [("L", (x, 170)), ("C", (x, 90), (x + 45, 55), (x + 125, 95))]
+
+
+BOWL_R: list[PathCmd] = [
     ("C", (400, 880), (510, T), (640, T)),
     ("C", (820, T), (910, 800), (910, 520)),
     ("C", (910, 250), (780, B), (600, B)),
     ("C", (470, B), (380, 100), (330, 170)),
 ]
-ARCH = [("C", (400, 900), (520, T), (640, T)), ("C", (800, T), (905, 880), (905, 700))]
+ARCH: list[PathCmd] = [
+    ("C", (400, 900), (520, T), (640, T)),
+    ("C", (800, T), (905, 880), (905, 700)),
+]
 
 
-def strokes_b():
+def strokes_b() -> list[Stroke]:
     return [
         path(*ASC(330), ("L", (330, 70)), ("C", (330, 30), (290, 10), (230, 20))),
         BALL(330),
@@ -216,7 +226,7 @@ def strokes_b():
     ]
 
 
-def strokes_c():
+def strokes_c() -> list[Stroke]:
     return [
         BALLAT(892, 828, 18),
         path(
@@ -229,11 +239,11 @@ def strokes_c():
     ]
 
 
-def strokes_d():
+def strokes_d() -> list[Stroke]:
     return [strokes_a()[0], path(*ASC(905), *EXIT(905)), BALL(905)]
 
 
-def strokes_h():
+def strokes_h() -> list[Stroke]:
     return [
         BALL(330),
         path(*ASC(330), ("L", (330, 40))),
@@ -246,7 +256,7 @@ def strokes_h():
     ]
 
 
-def strokes_dotlessj():
+def strokes_dotlessj() -> list[Stroke]:
     return [
         path(
             ("M", (430, 880)),
@@ -259,11 +269,11 @@ def strokes_dotlessj():
     ]
 
 
-def strokes_j():
+def strokes_j() -> list[Stroke]:
     return strokes_dotlessj() + [DOT()]
 
 
-def strokes_k():
+def strokes_k() -> list[Stroke]:
     stem = path(*ASC(330), ("L", (330, 40)))
     ball = BALL(330)
     loop = path(
@@ -279,7 +289,7 @@ def strokes_k():
     return [stem, ball, loop, leg]
 
 
-def strokes_l():
+def strokes_l() -> list[Stroke]:
     # B3: a long tail rising to the right; nothing else in the font has that
     # shape, so l stops looking like I, 1 or i at 12 px.
     # l keeps the chancery lead-in: with Figueiredo's hook at the top, l/I got
@@ -295,7 +305,7 @@ def strokes_l():
     ]
 
 
-def strokes_m():
+def strokes_m() -> list[Stroke]:
     # Three stems in one cell, at 300/600/900 (they were 250/600/950): mm, mw,
     # ww were the tightest pairs in the font (6.5 px at 40 px against a 14
     # mean), and texture healing can't reach wide-beside-wide. Measured:
@@ -316,18 +326,18 @@ def strokes_m():
     return [first, arch1, arch2]
 
 
-def strokes_p():
+def strokes_p() -> list[Stroke]:
     return [
         path(*ENTRY(330, T), ("L", (330, D - 10))),
         path(("M", (330, 620)), *BOWL_R),
     ]
 
 
-def strokes_q():
+def strokes_q() -> list[Stroke]:
     return [strokes_a()[0], path(("M", (905, T)), ("L", (905, D - 10)))]
 
 
-def strokes_r():
+def strokes_r() -> list[Stroke]:
     return [
         path(*ENTRY(330, T), ("L", (330, 40))),
         path(
@@ -339,7 +349,7 @@ def strokes_r():
     ]
 
 
-def strokes_s():
+def strokes_s() -> list[Stroke]:
     return [
         path(
             ("M", (860, 880)),
@@ -353,7 +363,7 @@ def strokes_s():
     ]
 
 
-def strokes_t():
+def strokes_t() -> list[Stroke]:
     # B3: a short stem, a short exit and the bar pulled to the right, as in
     # the chancery hands; three distinct silhouettes: f (long symmetric bar),
     # l (no bar, long tail), t (bar to the right, short tail).
@@ -371,7 +381,7 @@ def strokes_t():
     ]
 
 
-def strokes_v():
+def strokes_v() -> list[Stroke]:
     # A pointed vertex on the baseline: with a round bottom, v read as u at 12 px.
     return [
         path(
@@ -383,7 +393,7 @@ def strokes_v():
     ]
 
 
-def strokes_w():
+def strokes_w() -> list[Stroke]:
     # Narrower for the same reason as the m (wide-beside-wide pairs).
     left = path(
         *ENTRY(300, T),
@@ -401,7 +411,7 @@ def strokes_w():
     return [left, right]
 
 
-def strokes_x():
+def strokes_x() -> list[Stroke]:
     return [
         path(
             ("M", (260, 880)),
@@ -413,7 +423,7 @@ def strokes_x():
     ]
 
 
-def strokes_z():
+def strokes_z() -> list[Stroke]:
     return [
         path(
             ("M", (300, 940)),
@@ -424,7 +434,7 @@ def strokes_z():
     ]
 
 
-LETTERS = {
+LETTERS: dict[str, StrokesFn] = {
     "a": strokes_a,
     "b": strokes_b,
     "c": strokes_c,

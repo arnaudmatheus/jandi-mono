@@ -24,7 +24,8 @@ DOTLESS = ("dotlessi", "uni0237")
 
 def _mark_classes(state: BuildState) -> tuple[MarkClasses, list[str]]:
     """Mark class -> its marks, and the markClass statements declaring them."""
-    classes, lines = {}, []
+    classes: MarkClasses = {}
+    lines: list[str] = []
     for gname, (kind, (x, y)) in state.mark_anchors.items():
         cls = dict(MARK_CLASSES)[kind]
         classes.setdefault(cls, []).append(gname)

@@ -18,26 +18,44 @@ skeleton before the nib sweeps it, so the 35° contrast never flips. The
 ornaments stay upright: they are drawn, not written."""
 
 import math
-from shapely.geometry.base import BaseGeometry
-from pen_types import Stroke
+from collections.abc import Callable
+from functools import partial
+
 from shapely.geometry import Polygon
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
+
 import pen
 from letters import GOTA
 from pen import path
+from pen_types import Stroke
+
+# A stroke drawn with the full nib, or (points, k) with the nib scaled by k.
+NibStroke = Stroke | tuple[Stroke, float]
+# A motif: its strokes, and the closed outlines it fills.
+Motif = tuple[list[NibStroke], list[Stroke]]
+PointMap = Callable[[Stroke], Stroke]
 
 CELL = 1160  # merge.py sets the real cell (1320 in Wide)
 CY = 640  # bullets sit on the math axis
 
 
-def CX():
+def CX() -> float:
     return CELL / 2
 
 
 FLORAL_SCALE = 1.12  # motifs are drawn in ±430 and stay inside the cell
 
 
-def _xf(pts, mx=1, my=1, swap=False, cx=None, cy=CY, k=FLORAL_SCALE):
+def _xf(
+    pts: Stroke,
+    mx: float = 1,
+    my: float = 1,
+    swap: bool = False,
+    cx: float | None = None,
+    cy: float = CY,
+    k: float = FLORAL_SCALE,
+) -> Stroke:
     cx = CX() if cx is None else cx
     out = []
     for x, y in pts:
@@ -47,7 +65,16 @@ def _xf(pts, mx=1, my=1, swap=False, cx=None, cy=CY, k=FLORAL_SCALE):
     return out
 
 
-def spiral(cx, cy, r_out, r_in, a0, turns=1.15, cw=True, n=48):
+def spiral(
+    cx: float,
+    cy: float,
+    r_out: float,
+    r_in: float,
+    a0: float,
+    turns: float = 1.15,
+    cw: bool = True,
+    n: int = 48,
+) -> Stroke:
     """An open scroll: an Archimedean spiral from r_out to r_in, starting at
     angle a0 (degrees). Every curl in the ornament is one of these, sized so
     the nib (≈140 units) never fills it in: a volute narrower than about 2.5
@@ -64,23 +91,27 @@ def spiral(cx, cy, r_out, r_in, a0, turns=1.15, cw=True, n=48):
 FINE = 0.55  # engraved line: curls, veins, tendrils
 
 
-def volute(cx, cy, r_out, a0, cw=True, turns=1.15):
+def volute(
+    cx: float, cy: float, r_out: float, a0: float, cw: bool = True, turns: float = 1.15
+) -> list[NibStroke]:
     """A scroll with the drop at its eye, drawn with the fine line."""
     pts = spiral(cx, cy, r_out, r_out * 0.5, a0, turns, cw)
     ex, ey = pts[-1]
     return [(pts, FINE), (GOTA(ex, ey, max(30, r_out * 0.2)), FINE)]
 
 
-def fine(pts):
+def fine(pts: Stroke) -> tuple[Stroke, float]:
     return (pts, FINE)
 
 
-def _map(s, fn):
+def _map(s: NibStroke, fn: PointMap) -> NibStroke:
     """Apply a point transform to a stroke, keeping its nib weight."""
     return (fn(s[0]), s[1]) if isinstance(s, tuple) else fn(s)
 
 
-def render(strokes, fills, w, t):
+def render(
+    strokes: list[NibStroke], fills: list[Stroke], w: float, t: float
+) -> BaseGeometry:
     """strokes: point lists (the full nib) or (points, k) for a lighter nib."""
     parts = [
         (
@@ -95,7 +126,7 @@ def render(strokes, fills, w, t):
 
 
 # ---------------------------------------------------------------- florões
-def leaf_ne(heavy=False):
+def leaf_ne(heavy: bool = False) -> Motif:
     """Rocalha leaf pointing north-east: a pointed blade with its vein, and a
     C-scroll volute where the stem turns under."""
     upper = path(("M", (-250, -250)), ("C", (-300, 90), (-20, 360), (340, 340)))
@@ -112,7 +143,7 @@ def leaf_ne(heavy=False):
     return strokes, fills
 
 
-def vine_ne(heavy=False):
+def vine_ne(heavy: bool = False) -> Motif:
     """Vine leaf pointing north-east: three lobes and a coiled tendril."""
     edge = path(
         ("M", (-230, -230)),
@@ -128,7 +159,7 @@ def vine_ne(heavy=False):
     return strokes, ([edge] if heavy else [])
 
 
-def bud_ne(heavy=False):
+def bud_ne(heavy: bool = False) -> Motif:
     """A closed bud pointing north-east, held by two sepals, on a scrolled stem."""
     body = path(
         ("M", (330, 330)),
@@ -144,7 +175,7 @@ def bud_ne(heavy=False):
     return strokes, ([body] if heavy else [])
 
 
-def hedera_down():
+def hedera_down() -> Motif:
     """The hedera (floral heart, ❦): a solid heart leaf, point down, its stem
     rising and curling over to the left."""
     heart = path(
@@ -159,19 +190,27 @@ def hedera_down():
     return [(heart, 0.75), fine(stem)] + curl, [heart]
 
 
-def _oriented(builder, direction, turned=False, heavy=False):
+def _oriented(
+    builder: Callable[[bool], Motif],
+    direction: str,
+    turned: bool = False,
+    heavy: bool = False,
+) -> Motif:
     """direction: NE, NW, SE, SW. turned: mirrored across the motif's own axis."""
     strokes, fills = builder(heavy)
     mx = -1 if direction in ("NW", "SW") else 1
     my = -1 if direction in ("SE", "SW") else 1
-    f = lambda pts: _xf(pts, mx, my, swap=turned)
+
+    def f(pts: Stroke) -> Stroke:
+        return _xf(pts, mx, my, swap=turned)
+
     return [_map(s, f) for s in strokes], [f(s) for s in fills]
 
 
-def _hedera(rot):
+def _hedera(rot: str) -> Motif:
     strokes, fills = hedera_down()
 
-    def r(pts):
+    def r(pts: Stroke) -> Stroke:
         if rot == "down":
             return _xf(pts)
         k = FLORAL_SCALE
@@ -183,7 +222,7 @@ def _hedera(rot):
     return [_map(s, r) for s in strokes], [r(s) for s in fills]
 
 
-FLOROES = {
+FLOROES: dict[int, Callable[[], Motif]] = {
     0x2766: lambda: _hedera("down"),
     0x2767: lambda: _hedera("right"),
     0x2619: lambda: _hedera("left"),
@@ -191,19 +230,21 @@ FLOROES = {
 _DIRS = {0: "NW", 1: "SW", 2: "NE", 3: "SE"}
 for k in range(4):
     d = _DIRS[k]
-    FLOROES[0x1F650 + k] = lambda d=d: _oriented(leaf_ne, d)
-    FLOROES[0x1F654 + k] = lambda d=d: _oriented(leaf_ne, d, turned=True)
-    FLOROES[0x1F658 + k] = lambda d=d: _oriented(vine_ne, d)
-    FLOROES[0x1F65C + k] = lambda d=d: _oriented(vine_ne, d, heavy=True)
-    FLOROES[0x1F660 + k] = lambda d=d: _oriented(bud_ne, d)
-    FLOROES[0x1F664 + k] = lambda d=d: _oriented(bud_ne, d, heavy=True)
+    FLOROES[0x1F650 + k] = partial(_oriented, leaf_ne, d)
+    FLOROES[0x1F654 + k] = partial(_oriented, leaf_ne, d, turned=True)
+    FLOROES[0x1F658 + k] = partial(_oriented, vine_ne, d)
+    FLOROES[0x1F65C + k] = partial(_oriented, vine_ne, d, heavy=True)
+    FLOROES[0x1F660 + k] = partial(_oriented, bud_ne, d)
+    FLOROES[0x1F664 + k] = partial(_oriented, bud_ne, d, heavy=True)
 
 # ---------------------------------------------------------------- cartelas
 TOP, BOT = 1520, -320  # a frame half spans the bracket height
 MIDY = (TOP + BOT) / 2
 
 
-def _volute(x, y, s=1, up=1, r=190):
+def _volute(
+    x: float, y: float, s: int = 1, up: int = 1, r: float = 190
+) -> list[NibStroke]:
     """The scrolled end of a cartouche frame at (x, y), curling in toward the
     text (s: +1 = to the right) and down from the top (up=-1) or up from the
     bottom (up=1)."""
@@ -213,7 +254,7 @@ def _volute(x, y, s=1, up=1, r=190):
     return volute(cx, cy, r, a0, cw=cw)
 
 
-def cartela_paren():
+def cartela_paren() -> Motif:
     # A C-scroll bow with scrolled ends and a drop at its outer middle.
     bow = path(("M", (640, TOP)), ("C", (180, TOP - 420), (180, BOT + 420), (640, BOT)))
     return [bow, GOTA(240, MIDY, 60)] + _volute(640, TOP, 1, -1) + _volute(
@@ -221,7 +262,7 @@ def cartela_paren():
     ), []
 
 
-def cartela_flat():
+def cartela_flat() -> Motif:
     bow = path(("M", (660, TOP)), ("C", (420, TOP - 380), (420, BOT + 380), (660, BOT)))
     shell = [
         path(("M", (470, MIDY)), ("L", (330 + 40 * k, MIDY + 160 * (k - 1.5) / 1.5)))
@@ -231,12 +272,13 @@ def cartela_flat():
         ("M", (330, MIDY - 160)),
         ("C", (260, MIDY - 60), (260, MIDY + 60), (330, MIDY + 160)),
     )
-    return [bow, fine(rim)] + [fine(s) for s in shell] + _volute(
-        660, TOP, 1, -1
-    ) + _volute(660, BOT, 1, 1), []
+    strokes: list[NibStroke] = [bow, fine(rim)]
+    strokes += [fine(s) for s in shell]
+    strokes += _volute(660, TOP, 1, -1) + _volute(660, BOT, 1, 1)
+    return strokes, []
 
 
-def cartela_shell():
+def cartela_shell() -> Motif:
     frame = path(
         ("M", (760, TOP)),
         ("L", (480, TOP - 160)),
@@ -246,7 +288,7 @@ def cartela_shell():
     return [frame, GOTA(790, TOP + 10, 34), GOTA(790, BOT - 10, 34)], []
 
 
-def cartela_brace():
+def cartela_brace() -> Motif:
     top = path(
         ("M", (760, TOP)),
         ("C", (560, TOP), (520, TOP - 120), (520, TOP - 320)),
@@ -263,13 +305,16 @@ def cartela_brace():
     return [top, bot] + curl + _volute(760, TOP, 1, -1) + _volute(760, BOT, 1, 1), []
 
 
-def _mirror(builder):
+def _mirror(builder: Callable[[], Motif]) -> Motif:
     s, f = builder()
-    m = lambda pts: [(CELL - x, y) for x, y in pts]
+
+    def m(pts: Stroke) -> Stroke:
+        return [(CELL - x, y) for x, y in pts]
+
     return [_map(p, m) for p in s], [m(p) for p in f]
 
 
-CARTELAS = {
+CARTELAS: dict[int, Callable[[], Motif]] = {
     0x2768: cartela_paren,
     0x2769: lambda: _mirror(cartela_paren),
     0x276A: cartela_flat,
@@ -284,7 +329,7 @@ CARTELAS = {
 RT, RB = 1060, 260  # ribbon edges: from x-height down past the baseline
 
 
-def ribbon_end_left():
+def ribbon_end_left() -> Motif:
     """The end of an inscribed ribbon: the band runs to the cell's right edge
     to meet the words, is creased once, and ends in a swallowtail."""
     mid = (RT + RB) / 2
@@ -299,14 +344,17 @@ def ribbon_end_left():
     return [(band, 0.8)], []
 
 
-FILACTERIOS = {0x2770: ribbon_end_left, 0x2771: lambda: _mirror(ribbon_end_left)}
+FILACTERIOS: dict[int, Callable[[], Motif]] = {
+    0x2770: ribbon_end_left,
+    0x2771: lambda: _mirror(ribbon_end_left),
+}
 
-ORNAMENTS = {**FLOROES, **CARTELAS, **FILACTERIOS}
-HEAVY = set(range(0x1F65C, 0x1F660)) | set(range(0x1F664, 0x1F668))
+ORNAMENTS: dict[int, Callable[[], Motif]] = {**FLOROES, **CARTELAS, **FILACTERIOS}
+HEAVY: set[int] = set(range(0x1F65C, 0x1F660)) | set(range(0x1F664, 0x1F668))
 
 
 # ---------------------------------------------------------------- capitulares
-def carved(strokes, w, t):
+def carved(strokes: list[Stroke], w: float, t: float) -> BaseGeometry:
     """titl: the letter cut in stone. A heavier stroke with a fine groove down
     its centre, as in inscriptions carved with a V-cut: the light catches one
     wall and leaves the groove dark."""
@@ -315,7 +363,7 @@ def carved(strokes, w, t):
     return outer.difference(groove)
 
 
-def _flourish_head(minx: float, maxy: float) -> list[tuple[Stroke, float]]:
+def _flourish_head(minx: float, maxy: float) -> list[NibStroke]:
     entry = path(
         ("M", (minx + 160, maxy - 10)),
         ("C", (minx + 100, maxy + 60), (minx, maxy + 80), (minx - 90, maxy + 40)),
@@ -341,7 +389,7 @@ def _flourish_tail(minx: float, miny: float, maxx: float) -> Stroke:
     )
 
 
-def flourish(shape: BaseGeometry) -> list[tuple[Stroke, float]]:
+def flourish(shape: BaseGeometry) -> list[NibStroke]:
     """swsh: Figueiredo's rasgo grows out of the capital, curling over its head
     on the left and running below the baseline before turning up on the right.
 

@@ -17,7 +17,7 @@ from fontTools.otlLib.builder import buildStatTable
 WIN_ASCENT, WIN_DESCENT = 2300, 800
 
 
-def win_metrics(font):
+def win_metrics(font: TTFont) -> None:
     """usWinAscent/usWinDescent from the family constants. Windows clips
     anything outside them, so a glyph that reaches past them fails the
     build instead of clipping in silence (raise the constants then).
@@ -36,7 +36,7 @@ def win_metrics(font):
     font["OS/2"].usWinAscent, font["OS/2"].usWinDescent = WIN_ASCENT, WIN_DESCENT
 
 
-def version(font, semver):
+def version(font: TTFont, semver: str) -> str:
     """head.fontRevision and the name table's version string agree: 1.0.0
     is Version 1.000, 0.8.0 is Version 0.800. A pre-release sorts just
     below its release, so installers replace it with the final one:
@@ -56,7 +56,7 @@ def version(font, semver):
     return rev
 
 
-def caret(font, slant_deg):
+def caret(font: TTFont, slant_deg: float) -> None:
     """The text cursor leans with the letters (hhea caret slope)."""
     if slant_deg:
         font["hhea"].caretSlopeRise = 2000
@@ -92,7 +92,7 @@ def stat(font: TTFont, weight: int, italic: bool, weight_name: str) -> None:
     buildStatTable(font, axes, elidedFallbackName=2)
 
 
-def no_mac_names(font):
+def no_mac_names(font: TTFont) -> None:
     """Only Windows-platform name records: the Mac Roman ones are legacy and
     modern systems never read them."""
     font["name"].names = [n for n in font["name"].names if n.platformID != 1]

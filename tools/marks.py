@@ -5,17 +5,21 @@ pasted shape."""
 
 from letters import DOT
 from pen import path
+from pen_types import Stroke
+
+# A mark: where it attaches ('above', 'below', 'horn', 'ogonek') and its strokes.
+Mark = tuple[str, list[Stroke]]
 
 
-def _above(*strokes):
+def _above(*strokes: Stroke) -> Mark:
     return ("above", list(strokes))
 
 
-def _below(*strokes):
+def _below(*strokes: Stroke) -> Mark:
     return ("below", list(strokes))
 
 
-MARKS = {
+MARKS: dict[int, Mark] = {
     # grave and acute: drawn downward
     0x300: _above(path(("M", (-120, 190)), ("L", (70, 10)))),
     0x301: _above(path(("M", (130, 190)), ("L", (-60, 10)))),
@@ -79,4 +83,6 @@ MARKS = {
 }
 
 # ď ľ ť: Czech/Slovak write the caron on a tall letter as an apostrophe beside it.
-CARON_APOSTROPHE = [path(("M", (40, 120)), ("C", (40, 40), (10, -40), (-40, -90)))]
+CARON_APOSTROPHE: list[Stroke] = [
+    path(("M", (40, 120)), ("C", (40, 40), (10, -40), (-40, -90)))
+]

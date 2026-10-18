@@ -1,6 +1,7 @@
 """Writes pen shapes into the font: CFF outlines (as curves), advance, ink."""
 
 from fontTools.pens.boundsPen import BoundsPen
+from fontTools.misc.psCharStrings import T2CharString
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
 from shapely.geometry import Polygon
@@ -51,7 +52,7 @@ class GlyphWriter:
         self._cff = font["CFF "].cff
         self._top = self._cff.topDictIndex[0]
 
-    def charstring(self, shape: BaseGeometry, width: int | None = None):
+    def charstring(self, shape: BaseGeometry, width: int | None = None) -> T2CharString:
         """The shape as a CFF charstring; width None means the cell."""
         pen = T2CharStringPen(width, None)
         for g in _polygons(shape.simplify(SIMPLIFY)):
@@ -93,9 +94,11 @@ class GlyphWriter:
     def has(self, name: str) -> bool:
         return name in self._top.CharStrings
 
-    def bounds(self, name: str) -> Bounds | None:
+    def bounds(self, name: str) -> Bounds:
         """The ink bounds of the glyph as it is in the font right now."""
         glyphs = self.font.getGlyphSet()
         bp = BoundsPen(glyphs)
         glyphs[name].draw(bp)
+        if bp.bounds is None:
+            raise ValueError(f"glyph {name!r} has no outline (expected ink to measure)")
         return bp.bounds

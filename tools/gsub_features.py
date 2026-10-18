@@ -33,7 +33,7 @@ def stylistic_set_lookups(font: TTFont) -> list[int]:
 
 
 def _subtable_outputs(subtable: BaseTable) -> set[str]:
-    out = set()
+    out: set[str] = set()
     for v in (getattr(subtable, "mapping", None) or {}).values():
         out.update(v if isinstance(v, (list, tuple)) else [v])
     for ligatures in (getattr(subtable, "ligatures", None) or {}).values():

@@ -18,14 +18,18 @@ import numpy as np
 import shapely
 from shapely import affinity
 from shapely.geometry import Polygon
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
+
+from pen_types import PathCmd, Point, Stroke
 
 ADV, XH = 1240, 1027  # Radon's grid, measured; merge.py sets ADV to the cell
 SLANT = math.radians(7)  # one slant for the whole alphabet
 PEN = math.radians(35)  # chancery pen angle
 
 
-def cubic(p0, p1, p2, p3, n=48):
+def cubic(p0: Point, p1: Point, p2: Point, p3: Point, n: int = 48) -> Stroke:
+    """n points along a cubic Bézier, after its start point."""
     out = []
     for i in range(1, n + 1):
         s = i / n
@@ -42,7 +46,8 @@ def cubic(p0, p1, p2, p3, n=48):
     return out
 
 
-def line(p0, p1, step=24):
+def line(p0: Point, p1: Point, step: float = 24) -> Stroke:
+    """Points every `step` units along a straight line, after its start."""
     n = max(1, int(math.dist(p0, p1) / step))
     return [
         (p0[0] + (p1[0] - p0[0]) * i / n, p0[1] + (p1[1] - p0[1]) * i / n)
@@ -50,9 +55,13 @@ def line(p0, p1, step=24):
     ]
 
 
-def path(*cmds):
-    """cmds: ('M',p) ('L',p) ('C',c1,c2,p) -> list of points"""
-    pts = []
+def path(*cmds: PathCmd) -> Stroke:
+    """A skeleton stroke from drawing commands, as a list of points.
+
+    >>> path(("M", (330, 0)), ("L", (330, 972)))[-1]
+    (330.0, 972.0)
+    """
+    pts: Stroke = []
     for c in cmds:
         if c[0] == "M":
             pts = [c[1]]
@@ -63,7 +72,9 @@ def path(*cmds):
     return pts
 
 
-def ellipse(cx, cy, rx, ry, n=160, start=math.pi / 2):
+def ellipse(
+    cx: float, cy: float, rx: float, ry: float, n: int = 160, start: float = math.pi / 2
+) -> Stroke:
     return [
         (
             cx + rx * math.cos(start + 2 * math.pi * i / n),
@@ -74,15 +85,16 @@ def ellipse(cx, cy, rx, ry, n=160, start=math.pi / 2):
 
 
 # ---------------------------------------------------------------- the pen
-def slant(pts):
+def slant(pts: Stroke) -> Stroke:
+    """Leans upright points by the style's slant, around y = 0."""
     return [(x + y * math.tan(SLANT), y) for x, y in pts]
 
 
-def sweep(pts, w, t):
+def sweep(pts: Stroke, w: float, t: float) -> BaseGeometry:
     return sweep_broad(pts, w, t)
 
 
-def sweep_broad(pts, w, t):
+def sweep_broad(pts: Stroke, w: float, t: float) -> BaseGeometry:
     """The nib (a w×t rectangle at PEN) dragged along pts: for each segment,
     the convex hull of the nib at both ends, all unioned. Vectorised with
     NumPy and Shapely 2's array functions: the same geometry as building one
@@ -103,10 +115,16 @@ def sweep_broad(pts, w, t):
     return shapely.union_all(shapely.convex_hull(shapely.multipoints(seg)))
 
 
-OPTICAL = 0  # 0 = box centre, 1 = ink centroid; merge.py sets it per letter
+OPTICAL: float = 0  # 0 = box centre, 1 = ink centroid; merge.py sets it per letter
 
 
-def place(upright_strokes, w, t, dx=None, band_top=XH):
+def place(
+    upright_strokes: list[Stroke],
+    w: float,
+    t: float,
+    dx: float | None = None,
+    band_top: float = XH,
+) -> tuple[BaseGeometry, float]:
     """Slant, sweep and centre a set of upright strokes. Returns (shape, dx).
     Pass dx to reuse a base letter's centring for its accented forms.
     band_top: centre on 0..x-height for lowercase, 0..cap height for capitals

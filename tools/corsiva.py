@@ -20,18 +20,19 @@ skeletons and become cursive through the italic's slant and contrast."""
 
 from letters import T, B, A, D, BOWL_R, ARCH
 from pen import path
+from pen_types import PathCmd, Stroke, StrokesFn
 import letters
 
 
 # Corsiva lead-in and exit: longer, rising hairlines.
-def ENTRY_C(x, top):
+def ENTRY_C(x: float, top: float) -> list[PathCmd]:
     return [
         ("M", (x - 170, top - 240)),
         ("C", (x - 110, top - 120), (x - 50, top - 30), (x, top)),
     ]
 
 
-def EXIT_C(x):
+def EXIT_C(x: float) -> list[PathCmd]:
     return [
         ("L", (x, 190)),
         ("C", (x, 80), (x + 60, 40), (x + 130, 70)),
@@ -39,7 +40,7 @@ def EXIT_C(x):
     ]
 
 
-def LOOP_UP(x, base_y=380):
+def LOOP_UP(x: float, base_y: float = 380) -> list[PathCmd]:
     """Looped ascender opening to the right of the stem at x (plate 7: h k).
     The hairline starts low, crosses the stem near the x-height and the loop
     takes the whole ascender, so its counter stays open at 12 px."""
@@ -51,7 +52,7 @@ def LOOP_UP(x, base_y=380):
     ]
 
 
-def RASGO(x, end=170):
+def RASGO(x: float) -> list[PathCmd]:
     """Descender ending in a leftward sweep (plate 7: p q f), inside the cell."""
     return [
         ("L", (x, -190)),
@@ -60,7 +61,7 @@ def RASGO(x, end=170):
     ]
 
 
-def c_b():
+def c_b() -> list[Stroke]:
     # b without a loop (as in the first line of plate nº 7): the loop is kept
     # for h k l, and it is exactly what tells h from b; with both looped,
     # h/b measured 0.97.
@@ -70,7 +71,7 @@ def c_b():
     ]
 
 
-def c_d():
+def c_d() -> list[Stroke]:
     bowl = letters.strokes_a()[0]
     # The bastarda d: the stem rises and curls back to the left at the top.
     stem = path(
@@ -82,14 +83,14 @@ def c_d():
     return [bowl, stem]
 
 
-def c_h():
+def c_h() -> list[Stroke]:
     return [
         path(*LOOP_UP(330), ("L", (330, 40))),
         path(("M", (330, 640)), *ARCH, *EXIT_C(905)),
     ]
 
 
-def c_k():
+def c_k() -> list[Stroke]:
     stem = path(*LOOP_UP(330), ("L", (330, 40)))
     loop = path(
         ("M", (330, 430)),
@@ -104,10 +105,10 @@ def c_k():
     return [stem, loop, leg]
 
 
-def c_l():
+def c_l() -> list[Stroke]:
     # The loop sits above the x-height only: crossing the stem at the
     # x-height, it put ink where the t has its bar (l/t 0.861 → 0.896).
-    loop = [
+    loop: list[PathCmd] = [
         ("M", (480, 1190)),
         ("C", (640, 1260), (940, 1280), (940, 1380)),
         ("C", (940, 1460), (830, A + 25), (720, A + 25)),
@@ -125,7 +126,7 @@ def c_l():
     ]
 
 
-def c_f():
+def c_f() -> list[Stroke]:
     # A straight descender with a cut to the right: with the rasgo sweeping
     # left, f read as j at 12 px (the j keeps the big hook).
     hook = path(
@@ -139,11 +140,11 @@ def c_f():
     return [hook, bar]
 
 
-def c_p():
+def c_p() -> list[Stroke]:
     return [path(*ENTRY_C(330, T), *RASGO(330)), path(("M", (330, 620)), *BOWL_R)]
 
 
-def c_n():
+def c_n() -> list[Stroke]:
     entry = path(*ENTRY_C(330, T), ("L", (330, 40)))
     # The arch leaves the stem high, as in the roman. Leaving from the bottom
     # (the way the bastarda hand writes n in one gesture) closed the lower
@@ -160,7 +161,7 @@ def c_n():
     return [entry, arch]
 
 
-def c_m():
+def c_m() -> list[Stroke]:
     # Stems at 300/600/900, as in the roman (wide-beside-wide pairs, roadmap F3).
     first = path(*ENTRY_C(300, T), ("L", (300, 40)))
     arch1 = path(
@@ -180,7 +181,7 @@ def c_m():
     return [first, arch1, arch2]
 
 
-def c_u():
+def c_u() -> list[Stroke]:
     # No long lead-in: n and u with the same entry and the same exit become
     # mirrors (n/u 0.898 → 0.94). The u enters straight, as on plate nº 7.
     left = path(
@@ -193,27 +194,27 @@ def c_u():
     return [left, stem]
 
 
-def c_a():
+def c_a() -> list[Stroke]:
     bowl, _ = letters.strokes_a()
     return [bowl, path(("M", (905, T)), *EXIT_C(905))]
 
 
-def c_i_dotless():
+def c_i_dotless() -> list[Stroke]:
     return [path(*ENTRY_C(560, T), *EXIT_C(560))]
 
 
-def c_i():
+def c_i() -> list[Stroke]:
     return c_i_dotless() + [letters.DOT()]
 
 
-def c_t():
+def c_t() -> list[Stroke]:
     return [
         path(("M", (560, 1180)), *EXIT_C(560)),
         path(("M", (430, T - 10)), ("L", (880, T - 10))),
     ]
 
 
-def c_c():
+def c_c() -> list[Stroke]:
     # No drop: with the pressure quill it nearly closed the c (c/o 0.900 → 0.944).
     return [
         path(
@@ -226,7 +227,7 @@ def c_c():
     ]
 
 
-def c_r():
+def c_r() -> list[Stroke]:
     # A short arm, no drop, leaving the top-right corner open: that is where
     # the n has its shoulder. With the long arm, r/n got worse.
     return [
@@ -239,7 +240,7 @@ def c_r():
     ]
 
 
-CORSIVA = {
+CORSIVA: dict[str, StrokesFn] = {
     "a": c_a,
     "b": c_b,
     "c": c_c,

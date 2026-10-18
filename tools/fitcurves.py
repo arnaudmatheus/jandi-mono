@@ -24,28 +24,28 @@ CORNER = 32  # degrees: a sharper turn is a corner of the nib
 ERROR = 2.5  # font units (2000 per em): far below a pixel at any size
 
 
-def _sub(a, b):
+def _sub(a: Point, b: Point) -> Point:
     return (a[0] - b[0], a[1] - b[1])
 
 
-def _add(a, b):
+def _add(a: Point, b: Point) -> Point:
     return (a[0] + b[0], a[1] + b[1])
 
 
-def _mul(a, s):
+def _mul(a: Point, s: float) -> Point:
     return (a[0] * s, a[1] * s)
 
 
-def _dot(a, b):
+def _dot(a: Point, b: Point) -> float:
     return a[0] * b[0] + a[1] * b[1]
 
 
-def _norm(a):
+def _norm(a: Point) -> Point:
     n = math.hypot(*a)
     return (a[0] / n, a[1] / n) if n else (0.0, 0.0)
 
 
-def _bez(ctrl, t):
+def _bez(ctrl: Cubic, t: float) -> Point:
     u = 1 - t
     return _add(
         _add(_mul(ctrl[0], u**3), _mul(ctrl[1], 3 * u * u * t)),
@@ -53,7 +53,7 @@ def _bez(ctrl, t):
     )
 
 
-def _bez_d1(ctrl, t):
+def _bez_d1(ctrl: Cubic, t: float) -> Point:
     u = 1 - t
     return _add(
         _add(
@@ -64,14 +64,14 @@ def _bez_d1(ctrl, t):
     )
 
 
-def _bez_d2(ctrl, t):
+def _bez_d2(ctrl: Cubic, t: float) -> Point:
     return _add(
         _mul(_add(_sub(ctrl[2], _mul(ctrl[1], 2)), ctrl[0]), 6 * (1 - t)),
         _mul(_add(_sub(ctrl[3], _mul(ctrl[2], 2)), ctrl[1]), 6 * t),
     )
 
 
-def _chord_params(pts):
+def _chord_params(pts: Stroke) -> list[float]:
     u = [0.0]
     for a, b in zip(pts, pts[1:]):
         u.append(u[-1] + math.dist(a, b))
@@ -141,7 +141,7 @@ def _generate(pts: Stroke, u: list[float], t1: Point, t2: Point) -> Cubic:
     )
 
 
-def _max_error(pts, ctrl, u):
+def _max_error(pts: Stroke, ctrl: Cubic, u: list[float]) -> tuple[float, int]:
     (c0x, c0y), (c1x, c1y), (c2x, c2y), (c3x, c3y) = ctrl
     worst, idx = 0.0, len(pts) // 2
     dist = math.dist
@@ -160,7 +160,7 @@ def _max_error(pts, ctrl, u):
     return worst, idx
 
 
-def _reparam(pts, ctrl, u):
+def _reparam(pts: Stroke, ctrl: Cubic, u: list[float]) -> list[float]:
     (c0x, c0y), (c1x, c1y), (c2x, c2y), (c3x, c3y) = ctrl
     out = []
     for (px, py), t in zip(pts, u):
@@ -209,7 +209,7 @@ def _fit(pts: Stroke, t1: Point, t2: Point, err: float, depth: int = 0) -> list[
     )
 
 
-def _turn(a, b, c):
+def _turn(a: Point, b: Point, c: Point) -> float:
     v1, v2 = _sub(b, a), _sub(c, b)
     n1, n2 = math.hypot(*v1), math.hypot(*v2)
     if not n1 or not n2:
@@ -218,7 +218,7 @@ def _turn(a, b, c):
     return math.degrees(math.acos(cos))
 
 
-def _straight(run, err):
+def _straight(run: Stroke, err: float) -> bool:
     a, b = run[0], run[-1]
     L = math.dist(a, b)
     if L == 0:
@@ -229,7 +229,7 @@ def _straight(run, err):
     )
 
 
-def _densify(run, step=12.0):
+def _densify(run: Stroke, step: float = 12.0) -> Stroke:
     """Extra points along long edges, so the fit's error is checked between
     the polygon's vertices too, not only at them."""
     out = [run[0]]

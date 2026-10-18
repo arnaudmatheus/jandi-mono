@@ -199,6 +199,7 @@ Working on the code: `CLAUDE.md` is the standard it follows.
 pip install -r requirements-dev.txt
 pytest                                     # the build code's tests (a second or two)
 black tools tests                          # the formatter
+mypy                                       # the type hints in tools/
 python tools/identical.py before/ after/   # did a refactor move any glyph?
 ```
 
@@ -206,7 +207,7 @@ python tools/identical.py before/ after/   # did a refactor move any glyph?
 
 Every push and pull request is built on GitHub Actions
 (`.github/workflows/build.yml`), in five parallel jobs of two fonts each,
-while black and pytest check the code, and the fonts are then checked two
+while black, mypy and pytest check the code, and the fonts are then checked two
 ways in parallel. `tools/check.py` is the legibility gate,
 and fontbakery's universal profile (pinned in `requirements-qa.txt`) checks
 OpenType conformance, names and metrics. The job

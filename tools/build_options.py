@@ -2,21 +2,28 @@
 
 import math
 from dataclasses import dataclass
+from typing import NamedTuple
 
 import pen
 
+
+class Style(NamedTuple):
+    nib: tuple[int, int]  # nib width and hairline (W, T)
+    slant: int  # degrees
+
+
 # One skeleton set, four styles. Subtle contrast (decision, proof 01) is kept in
 # every style by scaling nib width and hairline together.
-STYLES = {
-    "Regular": dict(nib=(138, 106), slant=7),
-    "Bold": dict(nib=(196, 150), slant=7),  # Radon Bold stems ≈250 vs 172: ×1.42
+STYLES: dict[str, Style] = {
+    "Regular": Style(nib=(138, 106), slant=7),
+    "Bold": Style(nib=(196, 150), slant=7),  # Radon Bold stems ≈250 vs 172: ×1.42
     # The Italic is the corsiva after Figueiredo (tools/corsiva.py): his shapes
     # (loops, rasgos, entries) with the same broad nib as the Regular. His
     # pressure quill was tried and measured: even lightened to (165, 120) it
     # filled the counters, and eight pairs got worse than 0.3.0 (c/o +0.044,
     # n/u +0.036). Comments differ from code by shape; the stroke stays legible.
-    "Italic": dict(nib=(138, 106), slant=13),
-    "Bold Italic": dict(nib=(196, 150), slant=13),
+    "Italic": Style(nib=(138, 106), slant=13),
+    "Bold Italic": Style(nib=(196, 150), slant=13),
 }
 RADON_CELL = 1240  # Radon upstream's advance
 # Decision 2026-10-16: 1240 left too much air between chancery letters.
@@ -60,12 +67,12 @@ class BuildOptions:
 
     @property
     def slant_deg(self) -> float:
-        return STYLES[self.style]["slant"]
+        return STYLES[self.style].slant
 
     @property
     def nib(self) -> tuple[float, float]:
         """Nib width and thickness (W, T) for this style and family."""
-        w, t = STYLES[self.style]["nib"]
+        w, t = STYLES[self.style].nib
         return (w * TEXT_NIB, t * TEXT_NIB) if self.text else (w, t)
 
 
