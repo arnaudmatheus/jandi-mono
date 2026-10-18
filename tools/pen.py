@@ -7,6 +7,8 @@ it. Thick and thin are never drawn by hand: they fall out of the pen angle,
 the same for every letter. That constancy is the "Renaissance precision".
 """
 import math, sys, json
+import numpy as np
+import shapely
 from shapely.geometry import MultiPoint, Polygon, MultiPolygon
 from shapely.ops import unary_union
 from shapely.geometry.polygon import orient
@@ -287,13 +289,24 @@ def sweep_pointed(pts, w, t):
     return unary_union([LineString([a, b]).buffer((t + (w - t) * s) / 2, quad_segs=6) for (a, b), s in zip(segs, smooth)])
 
 def sweep_broad(pts, w, t):
+    """The nib (a w×t rectangle at PEN) dragged along pts: for each segment,
+    the convex hull of the nib at both ends, all unioned. Vectorised with
+    NumPy and Shapely 2's array functions: the same geometry as building one
+    hull per segment in Python, a fraction of the time (the sweep was a third
+    of every build)."""
     ux, uy = (w / 2) * math.cos(PEN), (w / 2) * math.sin(PEN)
     vx, vy = -(t / 2) * math.sin(PEN), (t / 2) * math.cos(PEN)
-    def corners(p):
-        x, y = p
-        return [(x + ux + vx, y + uy + vy), (x + ux - vx, y + uy - vy), (x - ux + vx, y - uy + vy), (x - ux - vx, y - uy - vy)]
-    hulls = [MultiPoint(corners(a) + corners(b)).convex_hull for a, b in zip(pts, pts[1:])]
-    return unary_union(hulls)
+    P = np.asarray(pts, dtype=float)
+    if len(P) < 2:
+        return unary_union([])
+    # (x + ux) + vx, in that order, exactly as the one-hull-at-a-time code
+    # did: summing ux + vx first moves the last digit, and a last-digit change
+    # is enough to fit a round letter differently (and hint it differently).
+    U = np.array([[ux, uy], [ux, uy], [-ux, -uy], [-ux, -uy]])
+    V = np.array([[vx, vy], [-vx, -vy], [vx, vy], [-vx, -vy]])
+    corners = (P[:, None, :] + U[None, :, :]) + V[None, :, :]       # (n, 4, 2)
+    seg = np.concatenate([corners[:-1], corners[1:]], axis=1)        # (n-1, 8, 2)
+    return shapely.union_all(shapely.convex_hull(shapely.multipoints(seg)))
 
 def glyph_shape(name, w, t):
     if name in COMPOSITES:

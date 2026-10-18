@@ -49,44 +49,77 @@ def _chord_params(pts):
     total = u[-1] or 1.0
     return [x / total for x in u]
 
+# The three hot functions below are the helpers above (_bez, _bez_d1, _bez_d2,
+# _dot, _mul, _add, _sub) written out inline, operation for operation in the
+# same order, so the floats come out bit-identical (the fonts don't change)
+# while the 5 million helper calls per font disappear. A NumPy version was
+# tried and was faster, but summed in another order: the last digits moved,
+# a few round letters split differently, and after hinting O read closer to
+# 0 at 12 px (0/O +0.046). So the arithmetic stays exactly as it was.
 def _generate(pts, u, t1, t2):
     """Least-squares cubic through pts with end tangents t1, t2."""
     p0, p3 = pts[0], pts[-1]
-    C = [[0.0, 0.0], [0.0, 0.0]]; X = [0.0, 0.0]
-    for p, t in zip(pts, u):
-        a1 = _mul(t1, 3 * (1 - t) ** 2 * t)
-        a2 = _mul(t2, 3 * (1 - t) * t * t)
-        C[0][0] += _dot(a1, a1); C[0][1] += _dot(a1, a2); C[1][1] += _dot(a2, a2)
-        tmp = _sub(p, _bez((p0, p0, p3, p3), t))
-        X[0] += _dot(a1, tmp); X[1] += _dot(a2, tmp)
-    C[1][0] = C[0][1]
-    det = C[0][0] * C[1][1] - C[0][1] * C[1][0]
+    p0x, p0y = p0; p3x, p3y = p3
+    t1x, t1y = t1; t2x, t2y = t2
+    c00 = c01 = c11 = 0.0
+    x0 = x1 = 0.0
+    for (px, py), t in zip(pts, u):
+        s1 = 3 * (1 - t) ** 2 * t
+        s2 = 3 * (1 - t) * t * t
+        a1x, a1y = t1x * s1, t1y * s1
+        a2x, a2y = t2x * s2, t2y * s2
+        c00 += a1x * a1x + a1y * a1y
+        c01 += a1x * a2x + a1y * a2y
+        c11 += a2x * a2x + a2y * a2y
+        w = 1 - t
+        b0, b1, b2, b3 = w ** 3, 3 * w * w * t, 3 * w * t * t, t ** 3
+        bx = (p0x * b0 + p0x * b1) + (p3x * b2 + p3x * b3)
+        by = (p0y * b0 + p0y * b1) + (p3y * b2 + p3y * b3)
+        tx, ty = px - bx, py - by
+        x0 += a1x * tx + a1y * ty
+        x1 += a2x * tx + a2y * ty
+    c10 = c01
+    det = c00 * c11 - c01 * c10
     seg = math.dist(p0, p3)
     if abs(det) > 1e-12:
-        al = (X[0] * C[1][1] - X[1] * C[0][1]) / det
-        ar = (C[0][0] * X[1] - C[1][0] * X[0]) / det
+        al = (x0 * c11 - x1 * c01) / det
+        ar = (c00 * x1 - c10 * x0) / det
     else:
         al = ar = seg / 3
     eps = 1e-6 * seg
     if al < eps or ar < eps:                       # degenerate: Wu/Barsky heuristic
         al = ar = seg / 3
-    return (p0, _add(p0, _mul(t1, al)), _add(p3, _mul(t2, ar)), p3)
+    return (p0, (p0x + t1x * al, p0y + t1y * al), (p3x + t2x * ar, p3y + t2y * ar), p3)
 
 def _max_error(pts, ctrl, u):
+    (c0x, c0y), (c1x, c1y), (c2x, c2y), (c3x, c3y) = ctrl
     worst, idx = 0.0, len(pts) // 2
+    dist = math.dist
     for i, (p, t) in enumerate(zip(pts, u)):
-        d = math.dist(_bez(ctrl, t), p)
+        w = 1 - t
+        b0, b1, b2, b3 = w ** 3, 3 * w * w * t, 3 * w * t * t, t ** 3
+        d = dist(((c0x * b0 + c1x * b1) + (c2x * b2 + c3x * b3),
+                  (c0y * b0 + c1y * b1) + (c2y * b2 + c3y * b3)), p)
         if d > worst:
             worst, idx = d, i
     return worst, idx
 
 def _reparam(pts, ctrl, u):
+    (c0x, c0y), (c1x, c1y), (c2x, c2y), (c3x, c3y) = ctrl
     out = []
-    for p, t in zip(pts, u):
-        d = _sub(_bez(ctrl, t), p)
-        d1, d2 = _bez_d1(ctrl, t), _bez_d2(ctrl, t)
-        den = _dot(d1, d1) + _dot(d, d2)
-        out.append(min(1.0, max(0.0, t - _dot(d, d1) / den)) if den else t)
+    for (px, py), t in zip(pts, u):
+        w = 1 - t
+        b0, b1, b2, b3 = w ** 3, 3 * w * w * t, 3 * w * t * t, t ** 3
+        dx = ((c0x * b0 + c1x * b1) + (c2x * b2 + c3x * b3)) - px
+        dy = ((c0y * b0 + c1y * b1) + (c2y * b2 + c3y * b3)) - py
+        e0, e1, e2 = 3 * w * w, 6 * w * t, 3 * t * t
+        d1x = ((c1x - c0x) * e0 + (c2x - c1x) * e1) + (c3x - c2x) * e2
+        d1y = ((c1y - c0y) * e0 + (c2y - c1y) * e1) + (c3y - c2y) * e2
+        f0, f1 = 6 * (1 - t), 6 * t
+        d2x = ((c2x - c1x * 2) + c0x) * f0 + ((c3x - c2x * 2) + c1x) * f1
+        d2y = ((c2y - c1y * 2) + c0y) * f0 + ((c3y - c2y * 2) + c1y) * f1
+        den = (d1x * d1x + d1y * d1y) + (dx * d2x + dy * d2y)
+        out.append(min(1.0, max(0.0, t - (dx * d1x + dy * d1y) / den)) if den else t)
     return out
 
 def _fit(pts, t1, t2, err, depth=0):

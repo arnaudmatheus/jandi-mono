@@ -1,10 +1,11 @@
 # Build every family, check it against the previous fonts, keep the result.
 #
-# - Every push and pull request: build on a GitHub runner, then
-#   tools/check.py fails the job if any confusable pair got more than 0.01
-#   worse than the fonts committed before this change (the rule every
-#   release so far has followed by hand).
-# - The built fonts and the check report are kept as the run's artifact.
+# - build: five shards in parallel, two fonts each (and their NF), so the
+#   whole set builds in about the time of one shard.
+# - check: gathers the fonts and runs tools/check.py, which fails if any
+#   confusable pair got more than 0.01 worse than the fonts committed before
+#   this change (the rule every release so far has followed by hand). The
+#   fonts and the report are kept as the run's artifact.
 # - A tag v<version> also publishes a GitHub Release with the fonts zipped,
 #   once the tag matches VERSION in tools/merge.py.
 name: Build and check
@@ -29,22 +30,25 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+    name: build (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: regular,      families: normal, styles: Regular Italic }
+          - { name: bold,         families: normal, styles: Bold BoldItalic }
+          - { name: wide-regular, families: wide,   styles: Regular Italic }
+          - { name: wide-bold,    families: wide,   styles: Bold BoldItalic }
+          - { name: text,         families: text,   styles: Regular Italic }
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0     # the baseline fonts come from an earlier commit
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
-
-      - name: System tools (pango-view for the measurements)
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends pango1.0-tools fontconfig zip
 
       - name: Python packages
         run: pip install -r requirements.txt
@@ -58,8 +62,47 @@ jobs:
           tar -xJf Monaspace.tar.xz MonaspiceRnNerdFontMono-{Regular,Bold,Italic,BoldItalic}.otf
           echo "NF_DIR=$RUNNER_TEMP/nf" >> "$GITHUB_ENV"
 
-      - name: Build
+      - name: Build ${{ matrix.families }} ${{ matrix.styles }}
+        env:
+          FAMILIES: ${{ matrix.families }}
+          STYLES: ${{ matrix.styles }}
         run: JOBS=4 ./build.sh python
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fonts-${{ matrix.name }}
+          path: build/*.otf
+          if-no-files-found: error
+          retention-days: 7
+
+  check:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0     # the baseline fonts come from an earlier commit
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: System tools (pango-view for the measurements)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends pango1.0-tools fontconfig zip
+
+      - name: Python packages
+        run: pip install -r requirements.txt
+
+      - name: Gather the fonts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: fonts-*
+          path: build
+          merge-multiple: true
 
       - name: Baseline (the fonts committed before this change)
         run: |
@@ -76,14 +119,14 @@ jobs:
           for f in $(git ls-tree --name-only "$BASE" fonts/otf/ | grep -v 'NF-'); do
             git show "$BASE:$f" > "baseline/$(basename "$f")"
           done
-          ls baseline
+          ls baseline build
 
       - name: Regression check
         run: python tools/check.py --base baseline --new build --report check-report.md
 
       - name: Keep the fonts and the report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jandi-mono-${{ github.sha }}
           path: |

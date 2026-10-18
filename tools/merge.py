@@ -77,6 +77,7 @@ td = cff.topDictIndex[0]
 # de caixa seguem encostando de borda a borda.
 if CELL != 1240:                      # Radon upstream is 1240
     from fontTools.pens.transformPen import TransformPen
+    from fontTools.pens.teePen import TeePen
     srcgs = TTFont(src).getGlyphSet()
     r = CELL / 1240
     # Wide: o desenho é o mesmo, só a célula cresce. O que encosta nas duas
@@ -89,13 +90,19 @@ if CELL != 1240:                      # Radon upstream is 1240
         w = font['hmtx'][g][0]
         nw = round(w * r)
         p = T2CharStringPen(None if nw == CELL else nw, None)
-        bp = BoundsPen(srcgs); srcgs[g].draw(bp)
-        joins = bp.bounds is not None and bp.bounds[0] <= 5 and bp.bounds[2] >= w - 5
-        sx, ox = (r, 0) if (joins or r_sym == r) else (r_sym, (nw - w * r_sym) / 2)
-        srcgs[g].draw(TransformPen(p, (sx, 0, 0, 1, ox, 0)))
+        if r_sym == r:                    # the default cell: every glyph scales alike
+            sx, ox, bp = r, 0, None
+        else:                             # Wide: only what touches both edges stretches
+            bp = BoundsPen(srcgs); srcgs[g].draw(bp)
+            joins = bp.bounds is not None and bp.bounds[0] <= 5 and bp.bounds[2] >= w - 5
+            sx, ox = (r, 0) if joins else (r_sym, (nw - w * r_sym) / 2)
+        # One pass writes the scaled glyph and measures it (the side-bearing
+        # is the outline's real left edge, not Radon's stored value).
+        nb = BoundsPen(None)
+        srcgs[g].draw(TransformPen(TeePen(p, nb), (sx, 0, 0, 1, ox, 0)))
         new = p.getCharString(private=td.Private, globalSubrs=cff.GlobalSubrs)
         cs.charStringsIndex[cs.charStrings[g]] = new
-        lsb = round(bp.bounds[0] * sx + ox) if bp.bounds else 0
+        lsb = round(nb.bounds[0]) if nb.bounds else 0
         font['hmtx'][g] = (nw, lsb)
     td.Private.defaultWidthX = CELL
     td.Private.nominalWidthX = 0

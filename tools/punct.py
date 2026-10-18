@@ -174,13 +174,19 @@ def centreline(poly, stroke):
     dense = shapely.segmentize(poly, 10)
     pts = [q for ring in [dense.exterior] + list(dense.interiors) for q in ring.coords[:-1]]
     edges = voronoi_diagram(MultiPoint(pts), edges=True)
-    def segs(g):
-        if g.geom_type == 'LineString':
-            cs = list(g.coords); return [LineString(cs[i:i + 2]) for i in range(len(cs) - 1)]
-        return [s for h in getattr(g, 'geoms', []) for s in segs(h)]
-    inside, bnd = prep(poly), poly.boundary
+    # Every Voronoi edge as a two-point segment, built and tested as arrays
+    # (Shapely 2): one call each instead of one Python object per edge.
+    import numpy as np
+    lines = shapely.get_parts(shapely.get_parts(edges))
+    coords, idx = shapely.get_coordinates(lines, return_index=True)
+    same = idx[1:] == idx[:-1]
+    segs_xy = np.stack([coords[:-1][same], coords[1:][same]], axis=1)       # (m, 2, 2)
+    cand = shapely.linestrings(segs_xy)
+    shapely.prepare(poly)
+    bnd = poly.boundary
     clear = 0.28 * stroke
-    keep = [e for e in segs(edges) if inside.contains(e) and e.distance(bnd) >= clear]
+    ok = shapely.contains(poly, cand) & (shapely.distance(cand, bnd) >= clear)
+    keep = list(cand[ok])
     if not keep:
         c = poly.representative_point(); return [[(c.x, c.y), (c.x + 1, c.y + 1)]]
     merged = linemerge(MultiLineString(keep))

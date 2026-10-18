@@ -334,12 +334,27 @@ descent.
   job if a confusable pair is more than 0.01 worse than the fonts committed
   before. A `v*` tag matching `VERSION` publishes the Release. The NF icons
   come from Nerd Fonts v3.5.1, pinned by SHA-256.
-- **Faster builds**, in order of payoff:
-  1. Derive Wide from the normal family (same letters, wider cell) instead of
-     drawing everything twice: about 40% less work.
-  2. A per-glyph cache keyed on skeleton, nib, slant and cell, so a
-     one-letter change rebuilds in seconds.
-  3. Profile, then move the hot loops (curve fitting, medial axis) to NumPy.
+- **Parallel CI ✅.** Five build jobs of two fonts each (with their NF)
+  run at once; a final job gathers them, runs the gate and publishes.
+  `build.sh` takes `FAMILIES` and `STYLES` to build a part, and now fails if
+  any font fails (a bare `wait` had been hiding failed jobs).
+- **Faster code ✅, with identical output:** one font builds in about 50 s
+  instead of 104 s. Every glyph is byte-identical to the 0.8.0 release,
+  checked on Regular, Bold and Wide Italic.
+  - The nib sweep is vectorised (NumPy and Shapely 2 array calls).
+  - The centreline tests its Voronoi edges as arrays.
+  - The curve fitter's hot helpers are written inline.
+  - The cell rescale draws each glyph once.
+- **Arithmetic order matters, and was kept.** Two tries changed the last
+  digit of some coordinates: a NumPy curve fitter (sums in another order),
+  and nib corners summed as `x + (ux + vx)` instead of `(x + ux) + vx`. The
+  outlines moved by less than a unit, but a few round letters then split
+  their curves differently, and after hinting `O` read closer to `0` at
+  12 px (`0/O` +0.046). The regression gate caught both, so both were redone
+  to keep the exact order.
+- **Still open:**
+  1. Derive Wide from the normal family instead of drawing it twice.
+  2. A per-glyph cache, keyed on skeleton, nib, slant and cell.
 
 ### 1.0.0: validation and release
 

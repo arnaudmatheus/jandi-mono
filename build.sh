@@ -1,53 +1,77 @@
 #!/usr/bin/env bash
 # Constrói as famílias do Jandí Mono (normal, Wide, Text e as NF) a partir do Radon upstream.
-# Uso: ./build.sh [python]   (python com fonttools + shapely)
+#
+# Uso: ./build.sh [python]                      tudo
+#      FAMILIES="normal wide" STYLES="Regular Italic" ./build.sh python
+#                                               só uma parte (a CI divide assim)
+# FAMILIES: normal wide text    STYLES: Regular Bold Italic BoldItalic
+# (Text só tem Regular e Italic). JOBS: processos ao mesmo tempo (padrão 4).
 set -euo pipefail
 cd "$(dirname "$0")"
 PY="${1:-python3}"
-mkdir -p build
-# No máximo JOBS processos ao mesmo tempo: cada merge.py segura a fonte inteira
-# e a geometria em memória; com tudo em paralelo o sistema ficou sem memória.
 JOBS="${JOBS:-4}"
-throttle() { while (( $(jobs -rp | wc -l) >= JOBS )); do wait -n; done; }
-# Jandi Mono (célula 1160) e Jandi Mono Wide (1320, o build de acessibilidade).
-for style in Regular Bold Italic "Bold Italic"; do
-  file="${style// /}"
-  throttle; "$PY" tools/merge.py "sources/upstream/MonaspaceRadon-$file.otf" "build/JandiMono-$file.otf" --style "$style" &
-  throttle; "$PY" tools/merge.py "sources/upstream/MonaspaceRadon-$file.otf" "build/JandiMonoWide-$file.otf" --style "$style" --wide &
+FAMILIES="${FAMILIES:-normal wide text}"
+STYLES="${STYLES:-Regular Bold Italic BoldItalic}"
+NF_DIR="${NF_DIR:-/usr/share/fonts/OTF}"
+mkdir -p build
+
+# Cada tarefa roda em segundo plano e o status de cada uma é conferido: um
+# merge.py que falha derruba o build (um `wait` sem argumentos sempre dá 0).
+# O limite de JOBS espera sem recolher os processos, para nenhum status se
+# perder. Com tudo em paralelo, a máquina local chegou a ficar sem memória.
+pids=()
+throttle() { while (( $(jobs -rp | wc -l) >= JOBS )); do sleep 0.2; done; }
+run() { throttle; "$@" & pids+=("$!"); }
+collect() {
+  local failed=0
+  for p in "${pids[@]}"; do wait "$p" || failed=1; done
+  pids=()
+  (( failed == 0 )) || { echo "build: uma tarefa falhou" >&2; exit 1; }
+}
+
+style_name() { case "$1" in BoldItalic) echo "Bold Italic" ;; *) echo "$1" ;; esac; }
+built=()
+for fam in $FAMILIES; do
+  case "$fam" in
+    normal) prefix=JandiMono;     flag=() ;;
+    wide)   prefix=JandiMonoWide; flag=(--wide) ;;   # célula 1320, o build de acessibilidade
+    text)   prefix=JandiMonoText; flag=(--text) ;;   # pena 8% mais larga: fundos claros, 97 PPI
+    *) echo "família desconhecida: $fam" >&2; exit 2 ;;
+  esac
+  for file in $STYLES; do
+    [[ $fam == text && $file != Regular && $file != Italic ]] && continue
+    run "$PY" tools/merge.py "sources/upstream/MonaspaceRadon-$file.otf" "build/$prefix-$file.otf" \
+        --style "$(style_name "$file")" "${flag[@]}"
+    built+=("build/$prefix-$file.otf")
+  done
 done
-# Jandi Mono Text: Regular e Italic, pena 8% mais larga (fundos claros, 97 PPI).
-for style in Regular Italic; do
-  throttle; "$PY" tools/merge.py "sources/upstream/MonaspaceRadon-$style.otf" "build/JandiMonoText-$style.otf" --style "$style" --text &
-done
-wait
+collect
+
 # Hinting (roadmap F2): Adobe's autohinter over the pen outlines, so FreeType's
 # hintslight can snap baseline, x-height and stems to the pixel grid. Before
 # the NF step, so the letters arrive hinted; the icons stay as Nerd Fonts made them.
 AUTOHINT="$(dirname "$PY")/otfautohint"
 command -v "$AUTOHINT" >/dev/null || AUTOHINT=otfautohint
 if command -v "$AUTOHINT" >/dev/null; then
-  # i l j q 1 e famílias ficam sem hinting: hintados, os pares estreitos
-  # ficavam mais parecidos (ver tools/nohint.py).
-  for f in build/JandiMono-*.otf build/JandiMonoWide-*.otf build/JandiMonoText-*.otf; do
-    # -p 2: o otfautohint abre um processo por núcleo; com dois arquivos ao
+  for f in "${built[@]}"; do
+    # i l j q 1 (e t f nas itálicas) ficam sem hinting (ver tools/nohint.py).
+    # -p 2: o otfautohint abre um processo por núcleo; com vários arquivos ao
     # mesmo tempo isso chegou a 30 processos e esgotou a memória.
-    throttle; "$AUTOHINT" -p 2 -x "$("$PY" tools/nohint.py "$f")" "$f" &
+    run "$AUTOHINT" -p 2 -x "$("$PY" tools/nohint.py "$f")" "$f"
   done
-  wait
+  collect
 else
   echo "sem otfautohint (pip install afdko): fontes sem hinting" >&2
 fi
+
 # Variante NF: os ícones do Nerd Fonts (barra, starship, nvim) dentro da fonte.
 # Vêm do MonaspiceRn Nerd Font do mesmo estilo, já escalado para esta célula.
-NF_DIR="${NF_DIR:-/usr/share/fonts/OTF}"
-for file in Regular Bold Italic BoldItalic; do
+for f in "${built[@]}"; do
+  file="${f##*-}"; file="${file%.otf}"
   src="$NF_DIR/MonaspiceRnNerdFontMono-$file.otf"
-  [[ -f $src ]] || { echo "sem $src: pulando NF-$file" >&2; continue; }
-  throttle; "$PY" tools/nerd.py "build/JandiMono-$file.otf" "$src" "build/JandiMonoNF-$file.otf" &
-  throttle; "$PY" tools/nerd.py "build/JandiMonoWide-$file.otf" "$src" "build/JandiMonoWideNF-$file.otf" &
-  if [[ -f build/JandiMonoText-$file.otf ]]; then
-    throttle; "$PY" tools/nerd.py "build/JandiMonoText-$file.otf" "$src" "build/JandiMonoTextNF-$file.otf" &
-  fi
+  [[ -f $src ]] || { echo "sem $src: pulando a NF de $f" >&2; continue; }
+  base="$(basename "$f" .otf)"
+  run "$PY" tools/nerd.py "$f" "$src" "build/${base%-*}NF-$file.otf"
 done
-wait
+collect
 ls -la build/JandiMono*.otf

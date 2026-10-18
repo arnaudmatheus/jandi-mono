@@ -170,7 +170,8 @@ fonts build unhinted.
 ### Continuous integration
 
 Every push and pull request is built on GitHub Actions
-(`.github/workflows/build.yml`) and checked by `tools/check.py`. The job
+(`.github/workflows/build.yml`), in five parallel jobs of two fonts each,
+and checked by `tools/check.py`. The job
 fails if any easily confused pair got more than 0.01 worse than the fonts
 committed before the change, the rule every release has followed. The
 fonts and the report are kept with each run. Pushing a tag `v<version>`
