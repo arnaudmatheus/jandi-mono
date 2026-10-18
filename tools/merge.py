@@ -35,7 +35,7 @@ STYLES = {
     'Bold Italic': dict(nib=(196, 150), slant=13),
 }
 FAMILY, PS = "Jandi Mono", "JandiMono"
-VERSION = "0.7.0"
+VERSION = "0.8.0"
 
 args = sys.argv[1:]
 style = 'Regular'
@@ -272,6 +272,95 @@ for name in font.getGlyphOrder():
     if src.is_empty:
         continue
     put(name, punct.restroke(src, W, T, SHEAR, RADON_STROKE), font['hmtx'][name][0]); pen_glyphs.append(name)
+
+# 1c. Ornament, all opt-in (roadmap 0.8.0; see tools/ornament.py): florões
+# and cartelas at Unicode's ornament code points, ribbon ends at ❰ ❱, and the
+# capitulares behind the titl and swsh features. Default text never reaches
+# any of it.
+import ornament
+ornament.CELL = CELL
+from fontTools.ttLib.tables._c_m_a_p import cmap_format_12
+from fontTools.ttLib.tables import otTables as ot
+order = font.getGlyphOrder()
+new_cmap = {}
+def add_glyph(name, shape):
+    """A glyph Radon doesn't have: appended to the CFF, the order and hmtx."""
+    idx = td.CharStrings
+    idx.charStringsIndex.append(to_charstring(shape))
+    idx.charStrings[name] = len(idx.charStringsIndex) - 1
+    order.append(name)
+    font['hmtx'][name] = (CELL, int(shape.bounds[0]))
+    INK[name] = shape.bounds
+for cp, builder in ornament.ORNAMENTS.items():
+    strokes, fills = builder()
+    k = 1.42 if cp in ornament.HEAVY else 1.0                 # the Bold nib, as in the Bold style
+    shape = ornament.render(strokes, fills, W * k, T * k)
+    x0, _, x1, _ = shape.bounds
+    if cp not in ornament.FILACTERIOS and (x0 < 15 or x1 > CELL - 15):
+        # A rotated heart or a heavy leaf wider than the cell: scaled to fit,
+        # so it never paints over its neighbours in a terminal.
+        s = (CELL - 30) / (x1 - x0)
+        shape = affinity.scale(shape, s, s, origin=((x0 + x1) / 2, ornament.CY))
+        x0, _, x1, _ = shape.bounds
+        shape = affinity.translate(shape, CELL / 2 - (x0 + x1) / 2, 0)
+    name = cmap.get(cp) or (f"uni{cp:04X}" if cp <= 0xFFFF else f"u{cp:05X}")
+    if name in td.CharStrings:
+        put(name, shape)
+    else:
+        add_glyph(name, shape); new_cmap[cp] = name
+    pen_glyphs.append(name)
+titl, swsh = {}, {}
+for cap in caps.CAPS:
+    if cap not in placed or len(cap) != 1:
+        continue
+    fn, kind = GLYPHS[cap]
+    strokes = [pen.slant(s) for s in fn()]
+    carved = affinity.translate(ornament.carved(strokes, W, T), placed[cap], 0)
+    add_glyph(f"{cap}.titl", carved); titl[cap] = f"{cap}.titl"
+    base, _ = pen.place(fn(), W, T, dx=placed[cap])
+    rasgo = ornament.render(ornament.flourish(base), [], W, T)
+    add_glyph(f"{cap}.swsh", unary_union([base, rasgo])); swsh[cap] = f"{cap}.swsh"
+td.charset = order
+font.setGlyphOrder(order)
+for t in font['cmap'].tables:
+    if t.format == 4:
+        t.cmap.update({k: v for k, v in new_cmap.items() if k <= 0xFFFF})
+    elif t.format == 12:
+        t.cmap.update(new_cmap)
+if any(k > 0xFFFF for k in new_cmap) and not any(t.format == 12 and (t.platformID, t.platEncID) == (3, 10) for t in font['cmap'].tables):
+    c12 = cmap_format_12(12); c12.platformID, c12.platEncID, c12.language = 3, 10, 0
+    c12.cmap = {**font.getBestCmap(), **new_cmap}; font['cmap'].tables.append(c12)
+cmap = font.getBestCmap()
+
+def add_feature(tag, mapping):
+    """A single-substitution feature, registered for every script and
+    language, off unless the application asks for it (titl, swsh)."""
+    gsub = font['GSUB'].table
+    lk = ot.Lookup(); lk.LookupType, lk.LookupFlag = 1, 0
+    st = ot.SingleSubst(); st.mapping = dict(mapping)
+    lk.SubTable, lk.SubTableCount = [st], 1
+    gsub.LookupList.Lookup.append(lk); gsub.LookupList.LookupCount = len(gsub.LookupList.Lookup)
+    fr = ot.FeatureRecord(); fr.FeatureTag = tag
+    fr.Feature = ot.Feature(); fr.Feature.FeatureParams = None
+    fr.Feature.LookupListIndex = [len(gsub.LookupList.Lookup) - 1]; fr.Feature.LookupCount = 1
+    recs = gsub.FeatureList.FeatureRecord
+    recs.append(fr)
+    new_i = len(recs) - 1
+    langs = [l for sr in gsub.ScriptList.ScriptRecord
+             for l in [sr.Script.DefaultLangSys] + [r.LangSys for r in sr.Script.LangSysRecord] if l]
+    for l in langs:
+        l.FeatureIndex.append(new_i)
+    # FeatureList stays sorted by tag (the OpenType spec asks for it).
+    perm = sorted(range(len(recs)), key=lambda i: recs[i].FeatureTag)
+    remap = {old: new for new, old in enumerate(perm)}
+    gsub.FeatureList.FeatureRecord = [recs[i] for i in perm]
+    gsub.FeatureList.FeatureCount = len(recs)
+    for l in langs:
+        l.FeatureIndex = sorted(remap[i] for i in l.FeatureIndex); l.FeatureCount = len(l.FeatureIndex)
+        if l.ReqFeatureIndex != 0xFFFF:
+            l.ReqFeatureIndex = remap[l.ReqFeatureIndex]
+add_feature('titl', titl)
+add_feature('swsh', swsh)
 
 # 2. texture-healing variants: same skeleton, mapped to Radon's measured extents
 for g in font.getGlyphOrder():

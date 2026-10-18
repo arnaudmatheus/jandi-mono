@@ -1,0 +1,109 @@
+# Build every family, check it against the previous fonts, keep the result.
+#
+# - Every push and pull request: build on a GitHub runner, then
+#   tools/check.py fails the job if any confusable pair got more than 0.01
+#   worse than the fonts committed before this change (the rule every
+#   release so far has followed by hand).
+# - The built fonts and the check report are kept as the run's artifact.
+# - A tag v<version> also publishes a GitHub Release with the fonts zipped,
+#   once the tag matches VERSION in tools/merge.py.
+name: Build and check
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write          # only used to publish a Release on a v* tag
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NF_VERSION: v3.5.1       # Nerd Fonts release the NF icons come from (pinned)
+  NF_SHA256: 7cdb44b7cd3855a231641b3cc4cf38f434d615d12e1c475eb86232868c667dc0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # the baseline fonts come from an earlier commit
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: System tools (pango-view for the measurements)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends pango1.0-tools fontconfig zip
+
+      - name: Python packages
+        run: pip install -r requirements.txt
+
+      - name: Nerd Fonts icons (pinned and checksummed)
+        run: |
+          mkdir -p "$RUNNER_TEMP/nf" && cd "$RUNNER_TEMP/nf"
+          curl -fsSL -o Monaspace.tar.xz \
+            "https://github.com/ryanoasis/nerd-fonts/releases/download/$NF_VERSION/Monaspace.tar.xz"
+          echo "$NF_SHA256  Monaspace.tar.xz" | sha256sum -c -
+          tar -xJf Monaspace.tar.xz MonaspiceRnNerdFontMono-{Regular,Bold,Italic,BoldItalic}.otf
+          echo "NF_DIR=$RUNNER_TEMP/nf" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: JOBS=4 ./build.sh python
+
+      - name: Baseline (the fonts committed before this change)
+        run: |
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git rev-parse HEAD^)"
+          fi
+          echo "Baseline: $BASE"
+          mkdir -p baseline
+          for f in $(git ls-tree --name-only "$BASE" fonts/otf/ | grep -v 'NF-'); do
+            git show "$BASE:$f" > "baseline/$(basename "$f")"
+          done
+          ls baseline
+
+      - name: Regression check
+        run: python tools/check.py --base baseline --new build --report check-report.md
+
+      - name: Keep the fonts and the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jandi-mono-${{ github.sha }}
+          path: |
+            build/*.otf
+            check-report.md
+          if-no-files-found: warn
+
+      - name: Release (tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(sed -n 's/^VERSION = "\(.*\)"/\1/p' tools/merge.py)"
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match VERSION $VERSION in tools/merge.py" >&2; exit 1
+          fi
+          # Release notes: this version's section of FONTLOG.txt.
+          awk -v v="$VERSION" '$0 ~ "^"v" \\(" {on=1} on && /^[0-9]+\.[0-9]+\.[0-9]+ \(/ && $0 !~ "^"v" \\(" {exit} on' FONTLOG.txt > notes.md
+          mkdir -p dist/JandiMono-$VERSION
+          cp build/*.otf OFL.txt FONTLOG.txt README.md dist/JandiMono-$VERSION/
+          (cd dist && zip -9 -r "JandiMono-$VERSION.zip" "JandiMono-$VERSION")
+          gh release create "$GITHUB_REF_NAME" "dist/JandiMono-$VERSION.zip" \
+            --title "Jandí Mono $VERSION" --notes-file notes.md

@@ -29,7 +29,9 @@ if command -v "$AUTOHINT" >/dev/null; then
   # i l j q 1 e famílias ficam sem hinting: hintados, os pares estreitos
   # ficavam mais parecidos (ver tools/nohint.py).
   for f in build/JandiMono-*.otf build/JandiMonoWide-*.otf build/JandiMonoText-*.otf; do
-    throttle; "$AUTOHINT" -x "$("$PY" tools/nohint.py "$f")" "$f" &
+    # -p 2: o otfautohint abre um processo por núcleo; com dois arquivos ao
+    # mesmo tempo isso chegou a 30 processos e esgotou a memória.
+    throttle; "$AUTOHINT" -p 2 -x "$("$PY" tools/nohint.py "$f")" "$f" &
   done
   wait
 else

@@ -39,10 +39,10 @@ turn of the 19th century. It gives the font its ornament:
     Prophets at Congonhas (1800–1805).
 - **Manuel da Costa Ataíde:** **frames for brackets**, after the painted
   cartouches of his nave ceiling at São Francisco de Assis (1801–1812).
-- **What's there now:** the letters, the feet, the drops, the punctuation
-  and the C-scroll braces are in the font. The capitals, fleurons, frames and
-  banners are planned as opt-in ornament
-  ([ROADMAP](ROADMAP.md), 0.8.0), and will never touch default text.
+- **All of it is in the font now.** The letters, feet, drops, punctuation
+  and C-scroll braces are in default text. The capitals, fleurons, frames
+  and ribbon ends are opt-in ornament (see [Ornament](#ornament-opt-in)) and
+  never touch default text.
 
 **The rule above all of it: ornament never costs legibility.** Hard-to-read
 fonts don't help memory; that research failed to replicate, as the
@@ -113,6 +113,22 @@ is our own reading of the Luso-Brazilian Baroque and the *rococó mineiro*.
 Michelangelus is not a source of this font: no outlines, measurements or data
 from it were ever used, which its licence forbids.
 
+## Ornament (opt-in)
+
+Nothing here appears in normal text. Type the characters, or ask for the
+features:
+
+- **Florões**, after the scrolls of Aleijadinho's carving: `❦ ❧ ☙` and the
+  leaves and buds at U+1F650–1F667 (`🙐 🙘 🙠`…). Use them as separators in
+  notes, prompts, the lock screen.
+- **Cartelas**, frames after Ataíde's painted ceiling: `❨ 1722 ❩`,
+  `❪ Ouro ❫`, `❲ ❳`, `❴ Preto ❵`.
+- **Ribbon ends** after the Congonhas prophets' scrolls: `❰ SANCTUS ❱`.
+- **Capitals:** `titl` gives carved inline capitals, `swsh` Figueiredo's
+  flourished ones. In Ghostty, `font-feature = titl`; in Quickshell or Qt,
+  `font.features: { "titl": 1 }`; in CSS, `font-feature-settings: "swsh"`.
+  The flourishes overhang their cell, so keep them for headings.
+
 ## Families
 
 | Family | Use |
@@ -150,6 +166,20 @@ JOBS=2 ./build.sh     # fewer processes at once on a machine with little memory
 
 Hinting needs AFDKO's `otfautohint` (in `requirements.txt`); without it the
 fonts build unhinted.
+
+### Continuous integration
+
+Every push and pull request is built on GitHub Actions
+(`.github/workflows/build.yml`) and checked by `tools/check.py`. The job
+fails if any easily confused pair got more than 0.01 worse than the fonts
+committed before the change, the rule every release has followed. The
+fonts and the report are kept with each run. Pushing a tag `v<version>`
+that matches `VERSION` in `tools/merge.py` publishes a GitHub Release with
+the fonts zipped and that version's FONTLOG notes.
+
+```sh
+python tools/check.py --base fonts/otf --new build   # the same gate, locally
+```
 
 `tools/pen.py` holds the pen engine and the lowercase skeletons,
 `tools/corsiva.py` the Italic's letters after Figueiredo's plate nº 7,
@@ -214,11 +244,11 @@ The *rococó mineiro*:
   paintings.
 - **UNESCO World Heritage: [Historic Town of Ouro Preto](https://whc.unesco.org/en/list/124/)**
   (1980). The town, and the church of São Francisco de Assis whose carved
-  portal and painted ceiling inform the planned capitals, fleurons and
+  portal and painted ceiling inform the capitals, fleurons and
   frames.
 - **UNESCO World Heritage: [Sanctuary of Bom Jesus do Congonhas](https://whc.unesco.org/en/list/334/)**
   (1985). Aleijadinho's Twelve Prophets in soapstone (1800–1805), each
-  holding a scroll inscribed in Latin, the model for the planned banners.
+  holding a scroll inscribed in Latin, the model for the ribbon ends.
 - **Itaú Cultural encyclopedia** entries for
   [*Profetas do Aleijadinho*](https://enciclopedia.itaucultural.org.br/obras/108228-profetas-do-aleijadinho)
   and Manuel da Costa Ataíde's

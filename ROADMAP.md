@@ -215,7 +215,7 @@ terminals still use the small dab, not the punctuation drop. Dot size feeds
 `i/l` and `i/j`, so that change needs its own measured pass. Sharpness dipped
 with the new curves, which is F2's job (hinting).
 
-### 0.7.0: outline quality and the Text weight ✅ (built and measured, not yet released)
+### 0.7.0: outline quality and the Text weight ✅
 
 **F1. Smooth curves** (`tools/fitcurves.py`). The pen's polygon outlines are
 fitted back into cubic Béziers with Schneider's algorithm (*Graphics Gems*,
@@ -279,34 +279,67 @@ pass:
 Builds run at most `JOBS` processes at once (default 4): with everything in
 parallel the machine ran out of memory.
 
+### 0.8.0: ornament, the carving and the ceiling ✅ (built and measured, not yet released)
+
+Drawn in `tools/ornament.py`, all opt-in. Every motif is one skeleton;
+mirrored and turned forms are made before the nib sweeps it, so the 35°
+contrast never flips.
+
+**I1. Florões** at `❦ ❧ ☙` and U+1F650–1F667:
+- the **hedera** (the printer's floral heart), solid, with a scrolled stem;
+- the **rocalha leaf**, in four directions plus the turned forms;
+- the **vine leaf** and the **bud**, each light and heavy.
+
+**I2. Cartelas** at `❨❩ ❪❫ ❲❳ ❴❵`: frame halves after Ataíde's ceiling
+cartouches.
+- `❨❩` are C-scroll bows with scrolled ends and a drop.
+- `❪❫` carry a shell.
+- `❲❳` have chamfered corners with drops.
+- `❴❵` are scroll braces with a volute at the point.
+
+**I3. Filactérios.** Unicode has no banner code points, which the earlier
+plan assumed it did. The swallowtail ribbon ends live at `❰ ❱` instead (the
+heavy angle bracket ornaments). Their band ends exactly at the cell edge, to
+meet the inscription. `❮ ❯` keep Radon's design: `❯` is Starship's default
+prompt.
+
+**I4. Capitulares**, two OpenType features, off by default:
+- `titl`: carved capitals, a heavier stroke with a fine groove down its
+  centre, as in V-cut stone lettering;
+- `swsh`: Figueiredo's rasgo, a volute over the capital's head and a swash
+  under the baseline. These overhang their cell on purpose; they are for
+  headings, not the terminal.
+
+**The lesson the drawings taught.** A curl narrower than about 2.5 nib widths
+fills in and becomes a blot. Every scroll is an open Archimedean spiral with
+the drop at its eye, and curls, veins and tendrils use a fine engraved line
+(0.55 of the nib), as engraved Baroque ornament does. Ornaments wider than
+the cell are scaled to fit, so they never paint over a neighbour in a
+terminal.
+
+*Check:* with the features off, every metric of Regular, Italic, Wide and
+Text is **identical** to 0.7.0 (confusability, spacing, sharpness, visual
+angle, roman/italic). With them on, HarfBuzz shapes `titl`/`swsh` and every
+ornament maps in the plain and NF builds. Nothing passes the ascent or the
+descent.
+
 ---
 
 ## Next
 
-### 0.8.0: ornament (opt-in; the carving and the ceiling)
+### Build infrastructure
 
-Built after F1 so the ornament is drawn once, in final curves. Nothing in this
-phase changes default text.
-
-**I1. Florões.** *Rocalha* C- and S-scrolls, the shell and the crest, drawn
-with the pen at `❦ ❧ ☙` and in the Ornamental Dingbats block (U+1F650–1F67F).
-They serve as separators in notes, prompts and the lock screen.
-
-**I2. Cartelas.** Frames after Ataíde's cartouches at the ornamental brackets
-`❨❩❪❫❴❵` (U+2768–2775). They enclose a word or a number like a painted
-cartouche on a ceiling, e.g. `❪ 1722 ❫`.
-
-**I3. Filactérios.** Ribbon-scroll banner ends that turn a line of text into
-an inscribed banner. Placed in the Ornamental Dingbats block.
-
-**I4. Capitulares, two sets:**
-- `titl`: Aleijadinho's carved scroll capitals, heavy and three-dimensional in
-  feeling, for headings and the lock-screen date.
-- `swsh`: Figueiredo's flourished pen capitals, light, for Days and titles.
-- Both stay inside the line height and are never on in the terminal.
-
-*Check:* with the features off, every metric is identical to 0.7.0. With them
-on, glyphs render in Ghostty, Quickshell and Chromium, and nothing clips.
+- **Pipeline ✅** (`.github/workflows/build.yml`). Every push and pull
+  request builds all families on a GitHub runner. `tools/check.py` fails the
+  job if a confusable pair is more than 0.01 worse than the fonts committed
+  before. A `v*` tag matching `VERSION` publishes the Release. The NF icons
+  come from Nerd Fonts v3.5.1, pinned by SHA-256.
+- **Faster builds**, in order of payoff:
+  1. Derive Wide from the normal family (same letters, wider cell) instead of
+     drawing everything twice: about 40% less work.
+  2. A per-glyph cache keyed on skeleton, nib, slant and cell, so a
+     one-letter change rebuilds in seconds.
+  3. Profile, then move the hot loops (curve fitting, medial axis) to NumPy.
 
 ### 1.0.0: validation and release
 
@@ -332,7 +365,7 @@ on, glyphs render in Ghostty, Quickshell and Chromium, and nothing clips.
 | 0.5.0 ✅ | D1–D4 | Spacing re-derived from the Baroque shapes |
 | 0.6.0 ✅ | E1, E2 | Punctuation and ligatures need the final drop size and spacing |
 | 0.7.0 ✅ | F1–F4, G | Curves and hints close the outline pipeline. Text reuses it |
-| 0.8.0 | I1–I4 | Ornament drawn once, in final curves, all opt-in |
+| 0.8.0 ✅ | I1–I4 | Ornament drawn once, in final curves, all opt-in |
 | 1.0.0 | Validation | The user's own reading decides |
 
 ## Sources

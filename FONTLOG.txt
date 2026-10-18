@@ -25,6 +25,17 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+0.8.0 (2026-10-17): ornament, all opt-in (tools/ornament.py)
+- Florões: the hedera at ❦ ❧ ☙; rocalha leaves, vine leaves and buds at
+  U+1F650-1F667, with open scrolled stems.
+- Cartelas after Manuel da Costa Ataíde's ceiling cartouches at ❨❩ ❪❫ ❲❳ ❴❵.
+- Ribbon ends after the Congonhas prophets' scrolls at ❰ ❱ (Unicode has no
+  banner code points). ❮ ❯ keep Radon's design (❯ is Starship's prompt).
+- Capitulares: titl (carved inline capitals) and swsh (Figueiredo's
+  flourished capitals), OpenType features off by default.
+- Default text is identical to 0.7.0: every measured number is unchanged.
+- build.sh caps the autohinter at two workers per font (memory).
+
 0.7.0 (2026-10-17): outline quality and the Text weight
 - Curves: the pen's polygon outlines are fitted back into cubic Béziers
   (tools/fitcurves.py, Schneider 1990), corners kept sharp, within about
@@ -145,7 +156,7 @@ Acknowledgements
 - Letters after Manuel de Andrade de Figueiredo, Nova Escola para aprender a
   ler, escrever e contar (Lisbon, 1722; public domain; Biblioteca Nacional
   de Portugal, purl.pt/107), as studied by Márcia Almada (2011, 2012).
-- Ornament (planned, 0.8.0) after the rococó mineiro: Aleijadinho's carving
+- Ornament (0.8.0, opt-in) after the rococó mineiro: Aleijadinho's carving
   in Ouro Preto and Congonhas, Manuel da Costa Ataíde's ceiling at São
   Francisco de Assis; see Myriam Andrade Ribeiro de Oliveira, O Rococó
   religioso no Brasil (2003), and Germain Bazin, O Aleijadinho (1971).

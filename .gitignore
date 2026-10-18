@@ -1,5 +1,8 @@
+baseline/
 build/
-proofs/
-__pycache__/
-*.pyc
+check-report.md
+dist/
 fccache*/
+proofs/
+*.pyc
+__pycache__/
