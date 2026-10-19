@@ -1,4 +1,4 @@
-# Jandí Mono
+# Talha Mono
 
 A monospaced font for terminals and desktops, **written with the pen of the
 Luso-Brazilian Baroque.** Its letters come from the writing master Manuel de
@@ -6,7 +6,10 @@ Andrade de Figueiredo (*Nova Escola*, 1722); its ornament from the *rococó
 mineiro* of Aleijadinho and Manuel da Costa Ataíde. Made for the
 [Jandí theme for Omarchy](https://github.com/arnaudmatheus/omarchy-jandi-theme).
 
-![Jandí Mono: the name, a terminal with code in the Regular and the corsiva comments, and Figueiredo's plate nº 7 beside the Italic](docs/hero.png)
+The name is *talha*, the gilded wood carving of the churches of Minas Gerais,
+where its ornament comes from. Until 1.0.0-beta.2 it was called Jandí Mono.
+
+![Talha Mono: the name, a terminal with code in the Regular and the corsiva comments, and Figueiredo's plate nº 7 beside the Italic](docs/hero.png)
 
 ## The inspiration: Barroco e Rococó
 
@@ -14,7 +17,7 @@ mineiro* of Aleijadinho and Manuel da Costa Ataíde. Made for the
 Santo, Brazil, and taught writing in Lisbon. His *Nova Escola para aprender a
 ler, escrever e contar* (1722) is a book of engraved writing models. Within a
 few years, his models ornamented the statute books (*Compromissos*) of the lay
-brotherhoods of Minas Gerais (Almada 2011, 2012). Jandí Mono takes its
+brotherhoods of Minas Gerais (Almada 2011, 2012). Talha Mono takes its
 letters from two of his plates:
 - **Plate nº 9, his calm everyday hand, for the Regular:** ascenders that
   curl over to the right and close in a ball, round open bowls, and the ball
@@ -55,7 +58,7 @@ harness, and nothing ships that makes an easily confused pair (`r/n`,
 Every letter is a centreline swept by **one cut nib held at one fixed angle
 (35°)**. Thick and thin are never drawn by hand; they fall out of the pen
 angle, the same for every letter. The hand lifts between letters (no joins),
-which is exactly what a monospace grid needs. Under the pen, Jandí Mono is
+which is exactly what a monospace grid needs. Under the pen, Talha Mono is
 built on **Monaspace Radon**, which supplies its vertical metrics, box
 drawing, symbol set and OpenType machinery.
 
@@ -87,14 +90,14 @@ drawing, symbol set and OpenType machinery.
 - **A taller x-height than Radon** (+5%), so 12 pt clears the ≈0.2° critical
   print size of reading research on a typical desktop monitor.
 - **Writes Tupi and Guarani correctly.** Radon has no mark positioning, so
-  `g` + U+0303 leaves the tilde floating beside the `g`. Jandí Mono adds GPOS
+  `g` + U+0303 leaves the tilde floating beside the `g`. Talha Mono adds GPOS
   mark attachment, so these all sit right:
   - `g̃ G̃ ỹ ĩ ũ ẽ`
   - Vietnamese stacks
   - stacked Pinyin accents (`ǘ ǚ`)
   - the Czech/Slovak apostrophe carons (`ď ľ ť Ľ`)
 - **Texture healing re-derived for these letters:** narrow letters step
-  aside next to wide ones by amounts measured on Jandí's own shapes. Spacing
+  aside next to wide ones by amounts measured on Talha's own shapes. Spacing
   is more even than Radon's.
 - **A tighter cell than Radon:** 1160 units (0.58 em) instead of 1240, so the
   narrow pen letters don't float apart. Box drawing still meets edge to edge.
@@ -130,7 +133,7 @@ angle for each release.
 
 To find the face you read fastest in, use the
 [reading test](https://claude.ai/artifact/XDD6j8zVNS581xVPPGP3Lz): blind,
-counterbalanced passages in Jandi Mono, Wide, Text and Radon, with a
+counterbalanced passages in Talha Mono, Wide, Text and Radon, with a
 comprehension check on each. The link opens only for people it's been
 shared with.
 
@@ -152,32 +155,32 @@ features:
 
 ## Specimen
 
-![Jandí Mono specimen](docs/specimen.png)
+![Talha Mono specimen](docs/specimen.png)
 
 ## Families
 
 | Family | Use |
 |---|---|
-| `Jandi Mono` | Text only |
-| `Jandi Mono NF` | Plus 10,828 Nerd Fonts icons for bars, prompts and editors, and braille for btop-style graphs (upstream Radon has no braille) |
-| `Jandi Mono Wide` | The same letters in a wider cell (1320 instead of 1160), for readers who need extra space between letters |
-| `Jandi Mono Wide NF` | Wide, plus the Nerd Fonts icons |
-| `Jandi Mono Text` | Regular and Italic with an 8% heavier nib (weight 450), for light backgrounds and low-density screens, where thin strokes fade |
-| `Jandi Mono Text NF` | Text, plus the Nerd Fonts icons |
+| `Talha Mono` | Text only |
+| `Talha Mono NF` | Plus 10,828 Nerd Fonts icons for bars, prompts and editors, and braille for btop-style graphs (upstream Radon has no braille) |
+| `Talha Mono Wide` | The same letters in a wider cell (1320 instead of 1160), for readers who need extra space between letters |
+| `Talha Mono Wide NF` | Wide, plus the Nerd Fonts icons |
+| `Talha Mono Text` | Regular and Italic with an 8% heavier nib (weight 450), for light backgrounds and low-density screens, where thin strokes fade |
+| `Talha Mono Text NF` | Text, plus the Nerd Fonts icons |
 
 ## Install
 
 ```sh
-git clone https://github.com/arnaudmatheus/jandi-mono
-mkdir -p ~/.local/share/fonts/JandiMono
-cp jandi-mono/fonts/otf/*.otf ~/.local/share/fonts/JandiMono/
+git clone https://github.com/arnaudmatheus/talha-mono
+mkdir -p ~/.local/share/fonts/TalhaMono
+cp talha-mono/fonts/otf/*.otf ~/.local/share/fonts/TalhaMono/
 fc-cache -f
 ```
 
 On Omarchy, make it the system font (terminals, bar, menus):
 
 ```sh
-omarchy font set "Jandi Mono NF"
+omarchy font set "Talha Mono NF"
 ```
 
 ## Build
@@ -243,14 +246,14 @@ behind each decision is in [SPEC.md](SPEC.md) and [ROADMAP.md](ROADMAP.md).
 
 - **Monaspace Radon**, the base: Riley Cran and the Lettermatic team, for
   [GitHub Next](https://github.com/githubnext/monaspace). SIL OFL 1.1.
-  Jandí Mono keeps its vertical metrics, symbols, box drawing and OpenType
+  Talha Mono keeps its vertical metrics, symbols, box drawing and OpenType
   features. It is a derivative and does not use Monaspace's Reserved Font
   Names. How Radon was made: [Lettermatic's Monaspace case study](https://lettermatic.com/custom/monaspace-case-study).
 - **Nerd Fonts** icons in the NF builds, copied from MonaspiceRn Nerd Font
   (Nerd Fonts' patch of Radon): Ryan L McIntyre and
   [contributors](https://github.com/ryanoasis/nerd-fonts). Each icon set
   keeps its own licence; see the Nerd Fonts repository.
-- **The Jandí palette and name**: [jandi-colors](https://github.com/franciscotbjr/jandi-colors)
+- **The Jandí palette** (the hero's and specimen's colours): [jandi-colors](https://github.com/franciscotbjr/jandi-colors)
   by Francisco Tarcizo Bomfim Júnior (MIT), from the blue pigment of the
   jenipapo fruit, the ancestral paint of Brazil's indigenous peoples.
 
@@ -315,7 +318,7 @@ recorded in [ROADMAP.md](ROADMAP.md).
   Why the unusual `f` and `g` stay.
 - M. Zorzi et al. (2012), "Extra-large letter spacing improves reading in
   dyslexia", *PNAS* 109(28). [Link](https://www.pnas.org/doi/10.1073/pnas.1209921109).
-  The reason for Jandi Mono Wide.
+  The reason for Talha Mono Wide.
 - T. J. Slattery & K. Rayner (2013), "Effects of intraword and interword
   spacing on eye movements during reading", *Attention, Perception, &
   Psychophysics* 75. [Link](https://link.springer.com/article/10.3758/s13414-013-0463-8).
@@ -353,7 +356,7 @@ recorded in [ROADMAP.md](ROADMAP.md).
   an italic that differs from the roman by shape, not only by slant.
 - Matthew Butterick, *Practical Typography*: [Monospaced fonts](https://practicaltypography.com/monospaced-fonts.html)
   and [Ligatures in programming fonts](https://practicaltypography.com/ligatures-in-programming-fonts-hell-no.html).
-  Jandí Mono turns ligatures on by default anyway, by choice, and keeps a
+  Talha Mono turns ligatures on by default anyway, by choice, and keeps a
   clean way to turn them off.
 
 ### Software
@@ -370,7 +373,7 @@ recorded in [ROADMAP.md](ROADMAP.md).
 - [HarfBuzz](https://harfbuzz.github.io/) (via uharfbuzz): shaping checks for
   texture healing, ligatures and stacked accents during development.
 
-Jandí Mono is not affiliated with or endorsed by any of the people or
+Talha Mono is not affiliated with or endorsed by any of the people or
 organisations above.
 
 ## Licence

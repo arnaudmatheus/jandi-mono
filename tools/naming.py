@@ -14,10 +14,10 @@ from glyph_table import XH_NEW
 RENAMED_IDS = (1, 2, 3, 4, 5, 6, 16, 17, 18, 19, 21, 22, 25)
 WINDOWS_ENGLISH = (3, 1, 0x409)
 SAMPLE_TEXT = "fogão · ñe'ẽ · yandï'pawa"
-COPYRIGHT = "Jandí Mono lowercase and marks: Copyright (c) 2026 arnaudmatheus."
+COPYRIGHT = "Talha Mono lowercase and marks: Copyright (c) 2026 arnaudmatheus."
 DESCRIPTION = (
     "Monaspace Radon's cursive rewritten with a fixed-angle Renaissance "
-    "broad nib, for the Jandí theme."
+    "broad nib, after Figueiredo's Nova Escola (1722)."
 )
 
 
@@ -64,7 +64,7 @@ def name_font(font: TTFont, opts: BuildOptions, version: str) -> None:
     """Names, version, style flags and Windows metrics for a finished font."""
     _set_names(font, opts, version)
     rev = finish.version(font, version)
-    longer = f"Version {rev}; Jandi Mono {version}; derived from Monaspace Radon 1.400"
+    longer = f"Version {rev}; Talha Mono {version}; derived from Monaspace Radon 1.400"
     font["name"].setName(longer, 5, *WINDOWS_ENGLISH)
     font["name"].setName(DESCRIPTION, 10, *WINDOWS_ENGLISH)
     _set_cff_names(font, opts)

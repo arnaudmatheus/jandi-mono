@@ -1,4 +1,4 @@
-Copyright (c) 2026 arnaudmatheus (https://github.com/arnaudmatheus/jandi-mono): Jandí Mono letterforms, marks and build tools.
+Copyright (c) 2026 arnaudmatheus (https://github.com/arnaudmatheus/talha-mono): Talha Mono letterforms, marks and build tools.
 Based on Monaspace Radon:
 Copyright (c) 2023, GitHub https://github.com/githubnext/monaspace
 with Reserved Font Name "Monaspace", including subfamilies: "Argon", "Neon", "Xenon", "Radon", and "Krypton"

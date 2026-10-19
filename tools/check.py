@@ -25,11 +25,11 @@ HERE = Path(__file__).resolve().parent
 # (label, roman file, italic file or None): the roman/italic pair is measured
 # together so roman/italic similarity is checked too.
 FAMILIES = [
-    ("Jandi Mono", "JandiMono-Regular.otf", "JandiMono-Italic.otf"),
-    ("Jandi Mono Italic", "JandiMono-Italic.otf", None),
-    ("Jandi Mono Bold", "JandiMono-Bold.otf", "JandiMono-BoldItalic.otf"),
-    ("Jandi Mono Wide", "JandiMonoWide-Regular.otf", "JandiMonoWide-Italic.otf"),
-    ("Jandi Mono Text", "JandiMonoText-Regular.otf", "JandiMonoText-Italic.otf"),
+    ("Talha Mono", "TalhaMono-Regular.otf", "TalhaMono-Italic.otf"),
+    ("Talha Mono Italic", "TalhaMono-Italic.otf", None),
+    ("Talha Mono Bold", "TalhaMono-Bold.otf", "TalhaMono-BoldItalic.otf"),
+    ("Talha Mono Wide", "TalhaMonoWide-Regular.otf", "TalhaMonoWide-Italic.otf"),
+    ("Talha Mono Text", "TalhaMonoText-Regular.otf", "TalhaMonoText-Italic.otf"),
 ]
 
 
@@ -125,7 +125,7 @@ def _comparison_row(
 
 def _report_heading(tolerance: float) -> list[str]:
     return [
-        "# Jandí Mono: regression check",
+        "# Talha Mono: regression check",
         "",
         f"Each family against its baseline. Fails if a confusable pair is more than "
         f"{tolerance} worse (similarity; lower is easier to tell apart).",

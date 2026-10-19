@@ -10,8 +10,8 @@ def test_defaults_are_the_regular_in_the_default_cell():
     assert (opts.style, opts.cell, opts.family, opts.ps_family) == (
         "Regular",
         DEFAULT_CELL,
-        "Jandi Mono",
-        "JandiMono",
+        "Talha Mono",
+        "TalhaMono",
     )
     assert opts.nib == (138, 106)
 
@@ -20,15 +20,15 @@ def test_wide_is_its_own_family_in_a_wider_cell():
     opts = parse_args(["in.otf", "out.otf", "--wide", "--style", "Bold Italic"])
     assert (opts.cell, opts.family, opts.ps_family) == (
         WIDE_CELL,
-        "Jandi Mono Wide",
-        "JandiMonoWide",
+        "Talha Mono Wide",
+        "TalhaMonoWide",
     )
     assert opts.bold and opts.italic and opts.slant_deg == 13
 
 
 def test_text_widens_the_nib_and_names_the_family():
     opts = parse_args(["in.otf", "out.otf", "--text"])
-    assert opts.family == "Jandi Mono Text"
+    assert opts.family == "Talha Mono Text"
     assert opts.nib == (138 * TEXT_NIB, 106 * TEXT_NIB)
 
 

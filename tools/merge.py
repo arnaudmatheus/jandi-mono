@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build one Jandí Mono font: the pen's letters merged into Monaspace Radon.
+"""Build one Talha Mono font: the pen's letters merged into Monaspace Radon.
 
 python merge.py <upstream.otf> <out.otf> [--style Regular|Bold|Italic|"Bold Italic"]
                 [--wide] [--text] [--cell N]
@@ -37,7 +37,7 @@ from place_ornaments import place_ornaments
 from place_symbols import place_symbols
 from zones import set_zones
 
-VERSION = "1.0.0-beta.2"
+VERSION = "1.0.0-beta.3"
 
 
 def start(opts: BuildOptions) -> BuildState:

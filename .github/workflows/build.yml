@@ -147,6 +147,12 @@ jobs:
           for f in $(git ls-tree --name-only "$BASE" fonts/otf/ | grep -v 'NF-'); do
             git show "$BASE:$f" > "baseline/$(basename "$f")"
           done
+          # 1.0.0-beta.3 renamed Jandí Mono to Talha Mono. Fonts committed
+          # before that are JandiMono-*.otf; compare them under the new names,
+          # or the gate would see only new families and skip them all.
+          for f in baseline/JandiMono*.otf; do
+            [ -e "$f" ] && mv "$f" "${f/JandiMono/TalhaMono}"
+          done
           ls baseline build
 
       - name: Regression check
@@ -156,7 +162,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: jandi-mono-${{ github.sha }}
+          name: talha-mono-${{ github.sha }}
           path: |
             build/*.otf
             check-report.md
@@ -171,9 +177,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { family: normal, glob: 'JandiMono-*.otf' }
-          - { family: wide,   glob: 'JandiMonoWide-*.otf' }
-          - { family: text,   glob: 'JandiMonoText-*.otf' }
+          - { family: normal, glob: 'TalhaMono-*.otf' }
+          - { family: wide,   glob: 'TalhaMonoWide-*.otf' }
+          - { family: text,   glob: 'TalhaMonoText-*.otf' }
     steps:
       - uses: actions/checkout@v7
 
@@ -234,9 +240,9 @@ jobs:
           # Release notes: this version's section of FONTLOG.txt, up to the
           # next version heading (a pre-release like 1.0.0-beta.1 included).
           awk -v v="$VERSION" '$0 ~ "^"v" \\(" {on=1} on && /^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)? \(/ && $0 !~ "^"v" \\(" {exit} on' FONTLOG.txt > notes.md
-          mkdir -p dist/JandiMono-$VERSION
-          cp build/*.otf OFL.txt FONTLOG.txt README.md dist/JandiMono-$VERSION/
-          (cd dist && zip -9 -r "JandiMono-$VERSION.zip" "JandiMono-$VERSION")
+          mkdir -p dist/TalhaMono-$VERSION
+          cp build/*.otf OFL.txt FONTLOG.txt README.md dist/TalhaMono-$VERSION/
+          (cd dist && zip -9 -r "TalhaMono-$VERSION.zip" "TalhaMono-$VERSION")
           PRE=""; case "$VERSION" in *-*) PRE="--prerelease" ;; esac   # betas are pre-releases
-          gh release create "$GITHUB_REF_NAME" "dist/JandiMono-$VERSION.zip" \
-            --title "Jandí Mono $VERSION" --notes-file notes.md $PRE
+          gh release create "$GITHUB_REF_NAME" "dist/TalhaMono-$VERSION.zip" \
+            --title "Talha Mono $VERSION" --notes-file notes.md $PRE

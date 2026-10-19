@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Jandí Mono's broad-nib pen engine.
+"""Talha Mono's broad-nib pen engine.
 
 Each letter is a centerline skeleton (cubic Béziers, drawn upright; see
 tools/letters.py). The skeleton is slanted, then a rectangular nib at ONE

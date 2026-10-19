@@ -1,4 +1,4 @@
-# Jandí Mono: regression check
+# Talha Mono: regression check
 
 Each family against its baseline. Fails if a confusable pair is more than 0.01 worse (similarity; lower is easier to tell apart).
 

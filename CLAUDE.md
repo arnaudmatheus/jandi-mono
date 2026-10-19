@@ -1,4 +1,4 @@
-# Jandí Mono: how the code is written
+# Talha Mono: how the code is written
 
 The standard for this repository, for people and coding agents alike.
 Adopted 2026-10-18. Existing code is being brought in line with it (see

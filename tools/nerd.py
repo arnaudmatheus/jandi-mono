@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Add Nerd Font icons to a Jandí Mono build -> "Jandi Mono NF".
+"""Add Nerd Font icons to a Talha Mono build -> "Talha Mono NF".
 
-python nerd.py <jandi.otf> <monaspice-nerd.otf> <out.otf>
+python nerd.py <talha.otf> <monaspice-nerd.otf> <out.otf>
 
 Without FontForge, the official Nerd Fonts patcher can't run here. MonaspiceRn
 Nerd Font (Nerd Fonts' patch of the same Radon) already holds every icon
 scaled for this exact cell (2000 UPM, 1240 advance), so the icons are copied
-from it: every codepoint it has and Jandí Mono lacks. Each icon is redrawn
+from it: every codepoint it has and Talha Mono lacks. Each icon is redrawn
 through a pen, so no CFF subroutine of the source font is carried over."""
 
 import sys
@@ -112,7 +112,7 @@ def _rename_icon_family(font: TTFont) -> None:
 def add_icons(font: TTFont, icons: TTFont) -> dict[str, list[int]]:
     """Add missing icons and name the NF family, keeping the letters intact.
 
-    Example: ``added = add_icons(TTFont("jandi.otf"), TTFont("icons.otf"))``.
+    Example: ``added = add_icons(TTFont("talha.otf"), TTFont("icons.otf"))``.
     """
     added = _copy_missing_icons(font, icons)
     _replace_icon_cmaps(font, added)
@@ -122,7 +122,7 @@ def add_icons(font: TTFont, icons: TTFont) -> dict[str, list[int]]:
 
 
 def main(argv: list[str]) -> None:
-    """Build the icon variant; e.g. ``main(["jandi.otf", "icons.otf", "nf.otf"])``."""
+    """Build the icon variant; e.g. ``main(["talha.otf", "icons.otf", "nf.otf"])``."""
     src, icons_src, out = argv[:3]
     with TTFont(src) as font, TTFont(icons_src) as icons:
         added = add_icons(font, icons)

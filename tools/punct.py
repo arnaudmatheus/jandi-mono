@@ -13,7 +13,7 @@ Two ways in:
   sum with the nib rectangle), so thick and thin come from the same 35° pen.
   Round dots inside them become drops.
 
-Both are sheared from Radon's angle (Regular 0°, Italic 11°) to Jandí's
+Both are sheared from Radon's angle (Regular 0°, Italic 11°) to Talha's
 (7°, 13°) around the math axis, so a bar across two cells stays one bar."""
 
 import math
@@ -400,7 +400,7 @@ def _restroke_polygon(
     g: Polygon, w: float, t: float, shear_deg: float, radon_stroke: float
 ) -> list[BaseGeometry]:
     # Solid shapes (the filled triangle of |> and <|) aren't strokes: they
-    # stay solid, only leaned to Jandí's angle. Where two strokes cross the
+    # stay solid, only leaned to Talha's angle. Where two strokes cross the
     # inscribed circle is at most ≈0.7 of a stroke, so 0.9 can't misfire.
     if _inscribed(g) > 0.9 * radon_stroke:
         return [affinity.skew(g, xs=shear_deg, origin=(0, AXIS))]
@@ -423,7 +423,7 @@ def _restroke_dot(dot: Polygon, w: float, t: float, shear_deg: float) -> BaseGeo
 def restroke(
     shape: BaseGeometry, w: float, t: float, shear_deg: float, radon_stroke: float
 ) -> BaseGeometry:
-    """Write Radon's centreline with Jandí's nib, preserving joins and solids.
+    """Write Radon's centreline with Talha's nib, preserving joins and solids.
 
     Weight comes from the nib alone, whatever Radon's stroke was.
     Example: ``ink = restroke(outline(gs, "hyphen"), 138, 106, 7, 178)``.

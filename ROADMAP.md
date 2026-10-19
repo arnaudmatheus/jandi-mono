@@ -1,4 +1,4 @@
-# Jandí Mono — roadmap 0.4 → 1.0: Barroco e Rococó
+# Talha Mono — roadmap 0.4 → 1.0: Barroco e Rococó
 
 **The base inspiration is the Luso-Brazilian Baroque and the *rococó
 mineiro*.** The letters come from the pen of Manuel de Andrade de Figueiredo,
@@ -121,7 +121,7 @@ centre of mass instead of their bounding box. Each letter was tested alone:
 - `c e s b h` each traded one pair for another.
 
 **D2. Texture healing re-derived.** Radon's healing makes narrow letters step
-aside and wide letters grow into the room. Jandí's `m` and `w` already fill the
+aside and wide letters grow into the room. Talha's `m` and `w` already fill the
 cell, so growing them made the healed pairs the tightest in the font: `mt` and
 `wt` at 7.5 px against a 13.8 px mean, at 40 px. I searched a grid of
 strengths, scoring both bigrams and three-letter contexts (the `i–n` in `min`).
@@ -131,7 +131,7 @@ The winner: wide lowercase doesn't grow, and narrow letters keep Radon's step.
 - Healing can't touch narrow beside narrow (`li ti fi`, the loosest) or wide
   beside wide (`mm ww`, the tightest). Only redrawing can: noted for F1.
 
-**D3. Jandi Mono Wide, cell 1320** (and Wide NF).
+**D3. Talha Mono Wide, cell 1320** (and Wide NF).
 - Same letters. Only glyphs whose ink touches both cell edges stretch (box
   drawing, blocks), so lines still join.
 - Brackets and punctuation keep the default width, centred. Stretched, `[`
@@ -259,7 +259,7 @@ strokes.
   `i/l` worse at every size tried (+0.028 to +0.047). A rounder, heavier dot
   fills the room above the stem that tells `i` from `l`.
 
-**G. Jandi Mono Text** (Regular and Italic, plus NF): the nib 8% wider,
+**G. Talha Mono Text** (Regular and Italic, plus NF): the nib 8% wider,
 weight class 450, for light backgrounds and the 97 PPI monitor. Both checks
 pass:
 - `l` stem 174 → 188 (+8.0%).
@@ -421,7 +421,7 @@ and a refactor must not move them.
 
 - **Reading-speed self-test ✅ built**:
   [Jandí Reading Test](https://claude.ai/artifact/XDD6j8zVNS581xVPPGP3Lz).
-  - Eight passages in Portuguese, two per font: Jandi Mono, Wide, Text and
+  - Eight passages in Portuguese, two per font: Talha Mono, Wide, Text and
     Radon.
   - Fonts shown blind as A–D in a shuffled order, with no font twice in a
     row.
@@ -449,7 +449,7 @@ and a refactor must not move them.
   drafts said "Casulla gold", but Casulla is another theme; Jandí's own
   yellow is the right pair.
 - **Reading-size guidance ✅** in the README, with a table per screen.
-- **Omarchy ✅**: already the system font (`omarchy font set "Jandi Mono
+- **Omarchy ✅**: already the system font (`omarchy font set "Talha Mono
   NF"`) and Ghostty's.
 
 **Reading test, session 1 (2026-10-18), not used for the decision.** On the
@@ -488,13 +488,13 @@ range:
 | Font | wpm | Passages counted |
 |---|---|---|
 | Text | 321 | 1 |
-| Jandi Mono | 299 | 1 |
+| Talha Mono | 299 | 1 |
 | Radon | 296 | 2 |
 | Wide | 231 | 2 |
 
 The reader's own passages varied 22–36% within a font, more than any gap
 between fonts. So far, no font is measurably faster for this reader, and
-Jandi Mono stays the default. One more session on another day would firm
+Talha Mono stays the default. One more session on another day would firm
 it up.
 
 After this session the test shuffles which letter each font wears every
@@ -503,8 +503,8 @@ session 1, so the test was no longer blind.
 
 **Reader observations from the test (2026-10-18), to act on later.** Two
 narrow letters side by side leave a visible hole in real words:
-- *antigo*: `t i` in **Jandi Mono Wide**;
-- *Estrada*: `t r` in **Jandi Mono**.
+- *antigo*: `t i` in **Talha Mono Wide**;
+- *Estrada*: `t r` in **Talha Mono**.
 
 Session 2's notes (written in the test's note box):
 - **Wide**: "too much space between a and l", another narrow letter next to
@@ -513,15 +513,15 @@ Session 2's notes (written in the test's note box):
   may close `t` toward `f` or `l`. Check `t/f` and `l/t` on Text with
   `tools/measure.py`.
 
-Session 3's notes, both in Jandi Mono:
+Session 3's notes, both in Talha Mono:
 - *tipiti* "has a different spacing from the rest": nearly all narrow
   letters, the same cluster as *antigo* and *Estrada*.
 - `t` and `r` are hard to tell apart. Measured (similarity, 12 / 15 / 20 px):
 
   | Font | `t/r` |
   |---|---|
-  | Jandi Mono | 0.936 / 0.911 / 0.901 |
-  | Jandi Mono Text | 0.937 / 0.904 / 0.892 |
+  | Talha Mono | 0.936 / 0.911 / 0.901 |
+  | Talha Mono Text | 0.937 / 0.904 / 0.892 |
   | Monaspace Radon | 0.790 / 0.721 / 0.647 |
 
   That makes `t/r` one of the most confusable pairs in the font, worse than

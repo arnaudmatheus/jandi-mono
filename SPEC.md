@@ -1,4 +1,4 @@
-# Jandí Mono — spec
+# Talha Mono — spec
 
 Monaspace Radon's cursive, rewritten with a Renaissance broad-nib pen, for the
 Jandí Omarchy theme. A terminal font first: it must hold the grid.
@@ -8,7 +8,7 @@ Jandí Omarchy theme. A terminal font first: it must hold the grid.
 - Base: **Monaspace Radon** (Lettermatic for GitHub Next), OFL 1.1.
   Upstream static Regular in `sources/upstream/`, with its LICENSE.
 - Reserved Font Names: "Monaspace", "Argon", "Neon", "Xenon", "Radon",
-  "Krypton". None may appear in this font's name. Working name: **Jandí Mono**.
+  "Krypton". None may appear in this font's name. Name: **Talha Mono** (Jandí Mono until 1.0.0-beta.2).
 - **Michelangelus is inspiration only.** Its EULA forbids reverse engineering
   and redistribution: no outlines, no measurements traced from it. What we take
   are its stated principles: start from the italic, the hand lifts between
@@ -43,11 +43,11 @@ Jandí Omarchy theme. A terminal font first: it must hold the grid.
   distinct `1 l I`, `0 O`.
 - Regular, Bold, Italic, Bold Italic at minimum.
 
-## Jandí requirements
+## Talha requirements
 
 - Correct Portuguese, Tupi and Guarani: `ỹ ĩ ũ ẽ ŷ ï g̃`, with marks anchored to
   each letter's optical centre. Upstream Radon has **no GPOS**, which is why
-  `g̃` floats; Jandí Mono adds `mark`/`mkmk` positioning.
+  `g̃` floats; Talha Mono adds `mark`/`mkmk` positioning.
 
 ## Texture healing (inherited from Radon's `calt`)
 
@@ -68,13 +68,13 @@ reading-speed self-test.
 1. ~~Proof 01: 9 letters, two contrasts~~ — done.
 2. ~~Full lowercase + texture-healing variants + marks and anchors, merged into
    upstream Radon Regular, renamed. Proof 02, local install~~ — done
-   2026-10-16: `tools/merge.py` → `build/JandiMono-Regular.otf`, 205 glyphs
+   2026-10-16: `tools/merge.py` → `build/TalhaMono-Regular.otf`, 205 glyphs
    replaced, GPOS `mark` added, combining marks reclassified to GDEF class 3.
    `v` given a pointed vertex (round v read as u at 12 px). Still Radon:
    `ß æ ø œ ł đ ħ ĸ ŋ þ ð`, the `i.alt`/`l.alt` stylistic alternates.
    Note: while another font is the Omarchy system font, fontconfig's
-   prepend rule returns that font for `Jandi Mono` too — test by making it
-   the system font (`omarchy font set "Jandi Mono"`).
+   prepend rule returns that font for `Talha Mono` too — test by making it
+   the system font (`omarchy font set "Talha Mono"`).
 3. ~~Figures (`1` flagged, `0` slashed), capitals (inscriptional, sloped)~~ —
    done 2026-10-16: `tools/caps.py`, 478 glyphs replaced. Capitals, figures,
    the 20 extra letters (`ß æ ø œ ł đ ħ ĸ ŋ þ ð Æ Ø Œ Ł Đ Ð Ħ Ŋ Þ`), 137
@@ -88,6 +88,6 @@ reading-speed self-test.
    done 2026-10-16. Bold nib 196×150 (Radon Bold stems ≈250 vs 172, ×1.42,
    same contrast); Italic slant 13° (Regular is already 7°). NF: no FontForge
    here, so `tools/nerd.py` copies the 10,828 icons MonaspiceRn Nerd Font has
-   and Jandí Mono lacks (same cell, already scaled), redrawn through a pen.
+   and Talha Mono lacks (same cell, already scaled), redrawn through a pen.
    Radon has two format-12 cmaps, (0,4) and (3,10): both must get the icons.
    `build.sh` builds all eight; release files in `fonts/otf/`.

@@ -11,7 +11,7 @@ import punct
 from build_state import BuildState
 from gsub_features import liga_lookups, lookup_outputs, stylistic_set_lookups
 
-# Radon's italic angle; Jandí's is the style's slant. Restroked symbols are
+# Radon's italic angle; Talha's is the style's slant. Restroked symbols are
 # sheared by the difference.
 RADON_ITALIC_ANGLE = 11
 

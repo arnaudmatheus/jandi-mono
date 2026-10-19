@@ -1,9 +1,9 @@
-FONTLOG for Jandí Mono
+FONTLOG for Talha Mono
 ======================
 
 Basic font information
 ----------------------
-Jandí Mono is a monospaced font for terminals and desktop interfaces, made for
+Talha Mono is a monospaced font for terminals and desktop interfaces, made for
 the Jandí theme for Omarchy. It is a derivative of Monaspace Radon: Radon's
 cursive letters are redrawn with a simulated Renaissance broad-nib pen held at
 one fixed angle, while Radon's vertical metrics, symbols, box drawing and
@@ -11,13 +11,13 @@ OpenType features are kept. Braille is only in the NF builds (upstream Radon
 has none).
 
 Six families are built from the same sources:
-- Jandi Mono         Regular, Bold, Italic, Bold Italic (cell 1160)
-- Jandi Mono NF      the same, plus Nerd Fonts icons
-- Jandi Mono Wide    the same letters in a 1320 cell, for extra-wide spacing
-- Jandi Mono Wide NF the same, plus Nerd Fonts icons
-- Jandi Mono Text    Regular and Italic, nib 8% wider (weight 450), for
+- Talha Mono         Regular, Bold, Italic, Bold Italic (cell 1160)
+- Talha Mono NF      the same, plus Nerd Fonts icons
+- Talha Mono Wide    the same letters in a 1320 cell, for extra-wide spacing
+- Talha Mono Wide NF the same, plus Nerd Fonts icons
+- Talha Mono Text    Regular and Italic, nib 8% wider (weight 450), for
                      light backgrounds and low-density screens
-- Jandi Mono Text NF the same, plus Nerd Fonts icons
+- Talha Mono Text NF the same, plus Nerd Fonts icons
 
 Released under the SIL Open Font License 1.1 (see OFL.txt). Following the
 OFL, it does not use the Reserved Font Names of the original ("Monaspace",
@@ -25,6 +25,15 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+1.0.0-beta.3 (2026-10-19): renamed Talha Mono
+- The font was Jandí Mono until 1.0.0-beta.2. It is not affiliated with
+  jandi-colors (whose palette and name the Jandí theme borrows) nor with
+  the JANDI messenger, so it takes its own name: talha, the gilded
+  carving of the churches of Minas Gerais, where its ornament comes from.
+- Families: Talha Mono, Talha Mono NF, Talha Mono Wide (and NF), Talha
+  Mono Text (and NF); files TalhaMono-*.otf. The glyphs are the same as
+  1.0.0-beta.2.
+
 1.0.0-beta.2 (2026-10-18): t and r told apart
 - The roman t's bar crosses its stem (330-800, was 430-880), the shape of
   the t in JetBrains Mono and Iosevka, the fonts with the most distinct t/r
@@ -194,7 +203,8 @@ Acknowledgements
   https://github.com/githubnext/monaspace (OFL 1.1)
 - Nerd Fonts: Ryan L McIntyre and contributors. https://github.com/ryanoasis/nerd-fonts
   The icon glyph sets keep their own licences; see the Nerd Fonts repository.
-- Jandí palette and naming: jandi-colors by Francisco Tarcizo Bomfim Júnior.
+- Jandí palette (hero and specimen colours): jandi-colors by Francisco
+  Tarcizo Bomfim Júnior.
   https://github.com/franciscotbjr/jandi-colors (MIT)
 - Letters after Manuel de Andrade de Figueiredo, Nova Escola para aprender a
   ler, escrever e contar (Lisbon, 1722; public domain; Biblioteca Nacional
@@ -208,4 +218,4 @@ Acknowledgements
   principles. No outlines, measurements or data from that font are used;
   its licence forbids it. Since 0.4.0 the base is the Baroque above.
 - Full references, including the reading research: README.md.
-- Jandí Mono letterforms and tools: arnaudmatheus.
+- Talha Mono letterforms and tools: arnaudmatheus.

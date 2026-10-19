@@ -1,4 +1,4 @@
-"""The cell: Radon's 1240 units, narrowed (or widened) for Jandí Mono.
+"""The cell: Radon's 1240 units, narrowed (or widened) for Talha Mono.
 
 Radon's cell is 1240 (0.62 em), wide; with the narrower chancery letters
 there was too much space between them. Shrinking the cell in the font itself
@@ -42,7 +42,7 @@ def _x_transform(
 
     Wide: the drawing is the same, only the cell grows. What touches both
     edges (box drawing, blocks) stretches so it keeps joining; the rest
-    (brackets, braces, punctuation) keeps Jandí Mono's width and is only
+    (brackets, braces, punctuation) keeps Talha Mono's width and is only
     centred. Stretched, [ and { looked more alike ([/{ +0.018 at 12 px).
     """
     r = cell / RADON_CELL

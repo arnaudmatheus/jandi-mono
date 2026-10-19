@@ -28,13 +28,13 @@ STYLES: dict[str, Style] = {
 RADON_CELL = 1240  # Radon upstream's advance
 # Decision 2026-10-16: 1240 left too much air between chancery letters.
 DEFAULT_CELL = 1160
-# Jandi Mono Wide (roadmap D3): the same letters in a 1320 cell, its own
+# Talha Mono Wide (roadmap D3): the same letters in a 1320 cell, its own
 # family so it installs beside the default. Extra-large letter spacing made
 # dyslexic children read faster with fewer errors (Zorzi et al. 2012); the
 # default stays 1160 because extra spacing slows typical readers
 # (Slattery & Rayner 2013).
 WIDE_CELL = 1320
-# Jandi Mono Text (roadmap G): the same letters with the nib 8% wider, for
+# Talha Mono Text (roadmap G): the same letters with the nib 8% wider, for
 # light backgrounds and low-density screens, where thin strokes fade (Commit
 # Mono recommends 450 against 400 there). Its own family, weight class 450.
 TEXT_NIB = 1.08
@@ -100,9 +100,9 @@ def parse_args(argv: list[str]) -> BuildOptions:
     if style not in STYLES:
         raise SystemExit(f"unknown --style {style!r} (expected one of {list(STYLES)})")
     cell = int(_take_value(args, "--cell", str(DEFAULT_CELL)))
-    family, ps = "Jandi Mono", "JandiMono"
+    family, ps = "Talha Mono", "TalhaMono"
     if _take_switch(args, "--wide"):
-        cell, family, ps = WIDE_CELL, "Jandi Mono Wide", "JandiMonoWide"
+        cell, family, ps = WIDE_CELL, "Talha Mono Wide", "TalhaMonoWide"
     text = _take_switch(args, "--text")
     if text:
         family, ps = family + " Text", ps + "Text"

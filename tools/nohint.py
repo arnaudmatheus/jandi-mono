@@ -43,7 +43,7 @@ def _accented_glyphs(cmap: dict[int, str], letters: set[str]) -> set[str]:
 
 
 def main(argv: list[str]) -> None:
-    """Print the autohinter exclusions; e.g. ``main(["jandi.otf"])``."""
+    """Print the autohinter exclusions; e.g. ``main(["talha.otf"])``."""
     with TTFont(argv[0]) as font:
         print(",".join(unhinted_glyphs(font)))
 

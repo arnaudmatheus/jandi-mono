@@ -24,7 +24,7 @@ def _stretch(state: BuildState, base: str, variant: str) -> tuple[float, float]:
     r = (vx1 - vx0) / (bx1 - bx0)
     shift = (vx0 + vx1) / 2 - (bx0 + bx1) / 2
     # Texture healing re-derived (roadmap D2): Radon's narrow letters step
-    # aside and its wide ones grow into the room. Jandí's m and w already fill
+    # aside and its wide ones grow into the room. Talha's m and w already fill
     # the cell, so growing them made the healed pairs the tightest in the font
     # (mt, wt 7.5 px against a 13.8 mean at 40 px). Measured over a grid of
     # strengths, wide lowercase that doesn't grow is the most even (CV over

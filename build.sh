@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the Jandí Mono families (normal, Wide, Text and their NF) from upstream Radon.
+# Builds the Talha Mono families (normal, Wide, Text and their NF) from upstream Radon.
 #
 # Usage: ./build.sh [python]                    everything
 #      FAMILIES="normal wide" STYLES="Regular Italic" ./build.sh python
@@ -34,9 +34,9 @@ style_name() { case "$1" in BoldItalic) echo "Bold Italic" ;; *) echo "$1" ;; es
 built=()
 for fam in $FAMILIES; do
   case "$fam" in
-    normal) prefix=JandiMono;     flag=() ;;
-    wide)   prefix=JandiMonoWide; flag=(--wide) ;;   # cell 1320, the accessibility build
-    text)   prefix=JandiMonoText; flag=(--text) ;;   # nib 8% wider: light grounds, 97 PPI
+    normal) prefix=TalhaMono;     flag=() ;;
+    wide)   prefix=TalhaMonoWide; flag=(--wide) ;;   # cell 1320, the accessibility build
+    text)   prefix=TalhaMonoText; flag=(--text) ;;   # nib 8% wider: light grounds, 97 PPI
     *) echo "unknown family: $fam (expected normal, wide or text)" >&2; exit 2 ;;
   esac
   for file in $STYLES; do
@@ -75,4 +75,4 @@ for f in "${built[@]}"; do
   run "$PY" tools/nerd.py "$f" "$src" "build/${base%-*}NF-$file.otf"
 done
 collect
-ls -la build/JandiMono*.otf
+ls -la build/TalhaMono*.otf

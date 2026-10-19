@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Jandí Mono measurement harness (roadmap phase A).
+"""Talha Mono measurement harness (roadmap phase A).
 
 python measure.py --font LABEL=PATH[:ITALIC_PATH] ... [--out docs/metrics]
 
@@ -61,7 +61,7 @@ CONFUSABLE = [
     ("g", "q"),
     ("v", "y"),
     # Added 2026-10-18 from the reading test: the reader found t and r
-    # hard to tell apart in Jandi Mono (0.936 at 12 px, Radon 0.790).
+    # hard to tell apart in Talha Mono (0.936 at 12 px, Radon 0.790).
     ("t", "r"),
     # Added the same day: the first redrawn t (crossbar reaching left)
     # read like the 1's flag in the README image (t/1 +0.10 at 20 px).
@@ -268,7 +268,7 @@ def _measure_args(argv: list[str] | None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Measure fonts and save reports; e.g. ``main(["--font", "Jandi=font.otf"])``."""
+    """Measure fonts and save reports; e.g. ``main(["--font", "Talha=font.otf"])``."""
     a = _measure_args(argv)
     results = {}
     for spec in a.font:

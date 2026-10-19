@@ -1,4 +1,4 @@
-"""A corsiva for Jandí Mono's Italic, after Manuel de Andrade de Figueiredo.
+"""A corsiva for Talha Mono's Italic, after Manuel de Andrade de Figueiredo.
 
 Model: plate nº 7 of *Nova Escola para aprender a ler, escrever e contar*
 (Lisboa Occidental, 1722; Biblioteca Nacional de Portugal, purl.pt/107,
