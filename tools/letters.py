@@ -364,20 +364,24 @@ def strokes_s() -> list[Stroke]:
 
 
 def strokes_t() -> list[Stroke]:
-    # B3: a short stem, a short exit and the bar pulled to the right, as in
-    # the chancery hands; three distinct silhouettes: f (long symmetric bar),
-    # l (no bar, long tail), t (bar to the right, short tail).
+    # B3: a short stem, a short exit; three distinct silhouettes: f (long
+    # symmetric bar), l (no bar, long tail), t (bar, short tail).
     #
-    # Known weakness (reading test, 2026-10-18): t and r are hard to tell
-    # apart (t/r 0.936 at 12 px; Radon 0.790); both have their weight right
-    # of a short stem. Nineteen redrawn t's were measured (ROADMAP, 1.0):
-    # weight moved left reads as 1 (t/1 +0.10 at 20 px), a centred bar as
-    # f, a longer foot as l, a lowered bar as 1 and l again. At this size no
-    # t alone beats all four; the fix is t and r (or t and 1) redrawn
-    # together. t/r and t/1 are measured pairs, so nothing makes it worse.
+    # The bar crosses the stem (330-800 around the stem at 560), as in
+    # JetBrains Mono and Iosevka, the fonts with the most distinct t/r of the
+    # eleven measured. The 0.8.0 bar (430-880) was pulled right, so t and r
+    # both had their weight right of a short stem; a reader found them hard
+    # to tell apart (t/r 0.936 at 12 px, Radon 0.790). Beier & Larson (2010)
+    # saw the same: their t without a crossing bar or tail was misread as r.
+    # Measured on 1.0.0-beta.2 (Regular): t/r 0.936 -> 0.916 at 12 px,
+    # 0.901 -> 0.849 at 20 px, paid for by t/1 (+0.104 at 20 px, from the
+    # font's most distinct pair) and t/f (+0.02); accepted by the user, see
+    # tools/gate_waivers.json. Taller necks, longer tails and a redrawn r
+    # were measured too and helped less (ROADMAP, 1.0). The corsiva keeps
+    # the 0.8.0 t (corsiva.c_t_pulled_right).
     return [
         path(("M", (560, 1180)), *EXIT(560)),
-        path(("M", (430, T - 10)), ("L", (880, T - 10))),
+        path(("M", (330, T - 10)), ("L", (800, T - 10))),
     ]
 
 

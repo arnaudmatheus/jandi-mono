@@ -25,6 +25,23 @@ OFL, it does not use the Reserved Font Names of the original ("Monaspace",
 
 ChangeLog
 ---------
+1.0.0-beta.2 (2026-10-18): t and r told apart
+- The roman t's bar crosses its stem (330-800, was 430-880), the shape of
+  the t in JetBrains Mono and Iosevka, the fonts with the most distinct t/r
+  of eleven measured. t/r in Jandi Mono: 0.936 -> 0.916 at 12 px, 0.911 ->
+  0.889 at 15 px, 0.901 -> 0.849 at 20 px; the same in Bold, Wide and Text.
+- The 1's flag starts further out, so 1 stays apart from the new t; 1/l
+  improves too (0.888 -> 0.816 at 20 px). The foot stays: without it, 1
+  read as the new t.
+- The cost, accepted on purpose: t/1 (0.736 -> 0.840 at 20 px, from the
+  font's most distinct pair) and t/f (about +0.02). The most confusable
+  pair involving t still improves at every size. The regression gate now
+  takes waivers scoped to one version (tools/gate_waivers.json), and lists
+  each accepted regression in its report.
+- The Italics keep their t: against the corsiva's short-armed r the
+  crossing bar made t/r worse (+0.015 to +0.024).
+- Release notes on GitHub now stop at the previous pre-release.
+
 1.0.0-beta.1 (2026-10-18): the 1.0 candidate; the final release follows one
 more reading-test session
 - t/r and t/1 join the measured pairs, so the regression gate guards them.

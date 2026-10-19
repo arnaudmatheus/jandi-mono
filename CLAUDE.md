@@ -9,7 +9,9 @@ Two rules come before everything below:
 - **The fonts are the product.** A change to the code must not change the
   fonts unless that is the point. A refactor produces byte-identical glyphs
   (compare with a build of the previous commit). A design change passes
-  `tools/check.py`: no confusable pair more than 0.01 worse.
+  `tools/check.py`: no confusable pair more than 0.01 worse. A trade the
+  user accepts on purpose goes in `tools/gate_waivers.json`, scoped to that
+  version, with the reason.
 - **Write in English.** Comments, docstrings, messages, commits. Portuguese
   stays where it is content, not commentary: Figueiredo's words, the
   reading-test passages, the names of things (*gota*, *rasgo*, *cartela*).

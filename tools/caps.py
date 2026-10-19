@@ -212,9 +212,12 @@ FIGURES: dict[str, StrokesFn] = {
         ellipse(620, 720, 290, 662),
         path(("M", (450, 330)), ("L", (790, 1110))),
     ],
-    # B3: a longer flag (1/l).
+    # B3: a longer flag (1/l). Longer again in 1.0.0-beta.2 (from (330, 1110)),
+    # so 1 stays apart from the roman t's crossing bar: t/1 at 20 px +0.104
+    # instead of +0.125, and 1/l 0.888 -> 0.816 at 20 px. The foot stays: a
+    # footless 1 read as the new t (t/1 +0.19 at 20 px).
     "one": lambda: [
-        path(("M", (330, 1110)), ("L", (640, CT)), ("L", (640, FB))),
+        path(("M", (250, 1010)), ("L", (640, CT)), ("L", (640, FB))),
         bar(430, 850, FB),
     ],
     "two": lambda: [

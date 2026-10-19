@@ -1,0 +1,135 @@
+[
+  {
+    "version": "1.0.0-beta.2",
+    "decided": "2026-10-18",
+    "reason": "The roman t's bar crosses the stem (330-800, was 430-880) and the 1's flag starts further out, to separate t from r, the pair a reader found hardest (Jandi Mono t/r 0.936 -> 0.916 at 12 px, 0.901 -> 0.849 at 20 px). The cost is t/1 (0.736 -> 0.840 at 20 px) and t/f (about +0.02); the most confusable pair involving t improves at every size in every upright family and is unchanged in the Italic. Bounds: the delta measured locally plus 0.01 for CI's renderer. Accepted by the user.",
+    "allow": [
+      {
+        "family": "Jandi Mono",
+        "pair": "t/f",
+        "px": "12",
+        "max_delta": 0.029
+      },
+      {
+        "family": "Jandi Mono",
+        "pair": "t/f",
+        "px": "15",
+        "max_delta": 0.03
+      },
+      {
+        "family": "Jandi Mono",
+        "pair": "t/1",
+        "px": "15",
+        "max_delta": 0.052
+      },
+      {
+        "family": "Jandi Mono",
+        "pair": "t/f",
+        "px": "20",
+        "max_delta": 0.038
+      },
+      {
+        "family": "Jandi Mono",
+        "pair": "t/1",
+        "px": "20",
+        "max_delta": 0.114
+      },
+      {
+        "family": "Jandi Mono Italic",
+        "pair": "t/1",
+        "px": "20",
+        "max_delta": 0.022
+      },
+      {
+        "family": "Jandi Mono Bold",
+        "pair": "t/f",
+        "px": "12",
+        "max_delta": 0.025
+      },
+      {
+        "family": "Jandi Mono Bold",
+        "pair": "t/f",
+        "px": "15",
+        "max_delta": 0.022
+      },
+      {
+        "family": "Jandi Mono Bold",
+        "pair": "t/1",
+        "px": "15",
+        "max_delta": 0.051
+      },
+      {
+        "family": "Jandi Mono Bold",
+        "pair": "t/f",
+        "px": "20",
+        "max_delta": 0.029
+      },
+      {
+        "family": "Jandi Mono Bold",
+        "pair": "t/1",
+        "px": "20",
+        "max_delta": 0.092
+      },
+      {
+        "family": "Jandi Mono Wide",
+        "pair": "t/f",
+        "px": "12",
+        "max_delta": 0.034
+      },
+      {
+        "family": "Jandi Mono Wide",
+        "pair": "t/f",
+        "px": "15",
+        "max_delta": 0.025
+      },
+      {
+        "family": "Jandi Mono Wide",
+        "pair": "t/1",
+        "px": "15",
+        "max_delta": 0.039
+      },
+      {
+        "family": "Jandi Mono Wide",
+        "pair": "t/f",
+        "px": "20",
+        "max_delta": 0.037
+      },
+      {
+        "family": "Jandi Mono Wide",
+        "pair": "t/1",
+        "px": "20",
+        "max_delta": 0.115
+      },
+      {
+        "family": "Jandi Mono Text",
+        "pair": "t/f",
+        "px": "12",
+        "max_delta": 0.028
+      },
+      {
+        "family": "Jandi Mono Text",
+        "pair": "t/f",
+        "px": "15",
+        "max_delta": 0.031
+      },
+      {
+        "family": "Jandi Mono Text",
+        "pair": "t/1",
+        "px": "15",
+        "max_delta": 0.055
+      },
+      {
+        "family": "Jandi Mono Text",
+        "pair": "t/f",
+        "px": "20",
+        "max_delta": 0.036
+      },
+      {
+        "family": "Jandi Mono Text",
+        "pair": "t/1",
+        "px": "20",
+        "max_delta": 0.111
+      }
+    ]
+  }
+]

@@ -231,8 +231,9 @@ jobs:
           if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
             echo "Tag $GITHUB_REF_NAME does not match VERSION $VERSION in tools/merge.py" >&2; exit 1
           fi
-          # Release notes: this version's section of FONTLOG.txt.
-          awk -v v="$VERSION" '$0 ~ "^"v" \\(" {on=1} on && /^[0-9]+\.[0-9]+\.[0-9]+ \(/ && $0 !~ "^"v" \\(" {exit} on' FONTLOG.txt > notes.md
+          # Release notes: this version's section of FONTLOG.txt, up to the
+          # next version heading (a pre-release like 1.0.0-beta.1 included).
+          awk -v v="$VERSION" '$0 ~ "^"v" \\(" {on=1} on && /^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)? \(/ && $0 !~ "^"v" \\(" {exit} on' FONTLOG.txt > notes.md
           mkdir -p dist/JandiMono-$VERSION
           cp build/*.otf OFL.txt FONTLOG.txt README.md dist/JandiMono-$VERSION/
           (cd dist && zip -9 -r "JandiMono-$VERSION.zip" "JandiMono-$VERSION")

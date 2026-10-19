@@ -417,7 +417,7 @@ and a refactor must not move them.
   1. Derive Wide from the normal family instead of drawing it twice.
   2. A per-glyph cache, keyed on skeleton, nib, slant and cell.
 
-### 1.0.0: validation and release (1.0.0-beta.1 released; final after one more reading session)
+### 1.0.0: validation and release (1.0.0-beta.2 released; final after one more reading session)
 
 - **Reading-speed self-test ✅ built**:
   [Jandí Reading Test](https://claude.ai/artifact/XDD6j8zVNS581xVPPGP3Lz).
@@ -542,6 +542,30 @@ Session 3's notes, both in Jandi Mono:
   The `t` is boxed in by `r`, `1`, `f` and `l`: at this size no `t` alone
   beats all four. **Next:** redraw `t` together with `r` (or with `1`),
   measured on all five pairs.
+
+  **Outcome (1.0.0-beta.2: a crossing bar on `t`, a longer flag on `1`).**
+  The research pointed the same way: Beier & Larson (2010) found a `t`
+  without an ascender or tail misread as `r`, and of eleven monospace
+  fonts measured, the most distinct `t/r` were Radon (0.79), JetBrains Mono
+  (0.81) and Iosevka (0.82), all with a bar crossing the stem. Eighteen
+  variants were built and gated (Regular, hinted):
+  - taller neck (1300, 1380), broader tail: `t/r` barely moved at 12 px;
+    `t` turned toward `1` and `l`;
+  - `r` with a shorter or drooping arm: no help to `t/r` (the short arm
+    does help `r/n`: 0.825 → 0.811 at 12 px; not shipped, a separate change);
+  - a foot serif on `r`, the classic monospace fix, wasn't built: in iA
+    Writer and Noto it scores about 0.90, ink where `t` has its tail;
+  - the bar crossing the stem (330–800): the only real `t/r` gain, at
+    every size. It cost `t/1`, and a longer flag on `1` won some back; a
+    footless `1` made `t/1` worse.
+
+  Shipped in Regular, Bold, Wide and Text: `t/r` 0.936 / 0.911 / 0.901 →
+  0.916 / 0.889 / 0.849 (Regular). The cost, accepted by the user: `t/1`
+  0.736 → 0.840 at 20 px and `t/f` about +0.02, with gate waivers scoped to
+  this version (`tools/gate_waivers.json`). The Italics keep the old `t`
+  (`corsiva.c_t_pulled_right`): against the corsiva's `r` the crossing bar
+  made `t/r` worse. Still far from Radon's 0.79; a stronger change hit `1`
+  every time.
 
 It shows in both cells, so it's in the shared letters, not one family's
 width. It is the same weakness the measurements found in F3/D2 (`ti ri li`

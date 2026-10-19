@@ -240,6 +240,18 @@ def c_r() -> list[Stroke]:
     ]
 
 
+def c_t_pulled_right() -> list[Stroke]:
+    # The t the Italic has always used: the 0.8.0 roman t, bar pulled right
+    # of the stem (c_t above, with the corsiva exit, was never registered).
+    # The roman t's crossing bar (1.0.0-beta.2) made t/r worse against this
+    # corsiva's short-armed r (+0.015 to +0.024 at 12-20 px), so the Italic
+    # keeps this one.
+    return [
+        path(("M", (560, 1180)), *letters.EXIT(560)),
+        path(("M", (430, T - 10)), ("L", (880, T - 10))),
+    ]
+
+
 CORSIVA: dict[str, StrokesFn] = {
     "a": c_a,
     "b": c_b,
@@ -254,6 +266,7 @@ CORSIVA: dict[str, StrokesFn] = {
     "n": c_n,
     "p": c_p,
     "r": c_r,
+    "t": c_t_pulled_right,
     "u": c_u,
     "dotlessi": c_i_dotless,
 }
